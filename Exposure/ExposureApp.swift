@@ -18,12 +18,13 @@ struct ExposureApp: App {
         let schema = Schema([
             ExposureItem.self,
         ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
 
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
+            
         }
     }()
 
@@ -43,6 +44,7 @@ struct ExposureApp: App {
                 queue: .main
             ) { notification in
                 if let uuid = notification.userInfo?["uuid"] as? UUID {
+                    appState.isFollowUp = notification.userInfo?["isFollowUp"] as? Bool ?? false
                     appState.currentExposureUUID = uuid
                     appState.isExposureInputViewPresented = true
                 }
@@ -56,12 +58,24 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         return true
     }
     
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+            // Here we actually handle the notification
+            print("Notification received with identifier \(notification.request.identifier)")
+            // So we call the completionHandler telling that the notification should display a banner and play the notification sound - this will happen while the app is in foreground
+            completionHandler([.banner, .sound])
+        }
+    
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
 
         if response.notification.request.content.categoryIdentifier == "exposureInput" {
             if let uuidString = response.notification.request.content.userInfo["uuid"] as? String,
                let uuid = UUID(uuidString: uuidString) {
-                NotificationCenter.default.post(name: Notification.Name("OpenExposureInputView"), object: nil, userInfo: ["uuid": uuid])
+                
+                if let secondsSinceOG = response.notification.request.content.userInfo["isFollowUp"] as? Bool {
+                    NotificationCenter.default.post(name: Notification.Name("OpenExposureInputView"), object: nil, userInfo: ["uuid": uuid, "isFollowUp": secondsSinceOG])
+                } else {
+                    NotificationCenter.default.post(name: Notification.Name("OpenExposureInputView"), object: nil, userInfo: ["uuid": uuid])
+                }
             }
         }
         completionHandler()
@@ -71,4 +85,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
 class AppState: ObservableObject {
     @Published var isExposureInputViewPresented = false
     @Published var currentExposureUUID: UUID?
+    @Published var isFollowUp: Bool = false
+    @Published var numberOfFollowUps: Int = 5
+    @Published var followUpInterval: Int = 60
 }

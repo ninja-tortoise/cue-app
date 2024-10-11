@@ -18,7 +18,7 @@ final class ExposureItem {
     var answer2: String = ""
     var likelihood: Int = 0
     var severity: Int = 0
-    var distressOverTime: Int = 0
+    var distressDict: [String: Int] = [:]
     
     init(uuid: UUID, at time: Date) {
         self.uuid = uuid

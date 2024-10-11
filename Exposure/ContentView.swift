@@ -14,61 +14,81 @@ struct ContentView: View {
     @EnvironmentObject var appState: AppState
     @Query private var items: [ExposureItem]
     @State private var daysBetweenAlerts = 2
-    @State private var notifications: [UNNotificationRequest] = []
 
     var body: some View {
         NavigationSplitView {
             
-            VStack(spacing: 20) {
-                Stepper("Alert every \(daysBetweenAlerts) day(s)", value: $daysBetweenAlerts, in: 0...14)
-                .padding(30)
-                
-                Button("Schedule Notifications") {
-                    scheduleAlerts()
-                }
-                
-                Button("Remove All Notifications") {
-                    removeAlerts()
-                }
-            }
-            .navigationTitle("Exposure Alert")
-            
-            
             List {
-                ForEach(items.sorted(by: { $0.timestamp < $1.timestamp })) { item in
-                    NavigationLink {
-                        VStack {
-                            Text("Notification Date: \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-//                            Text("Is empty: \(item.isEmpty)")
-//                            Text("Answer 1: \(item.answer1)")
-//                            Text("Answer 2: \(item.answer2)")
-                            Text("Likelihood: \(item.likelihood)")
-                            Text("Severity: \(item.severity)")
-                            Text("distressOverTime: \(item.distressOverTime)")
+                Section("Configuration") {
+                    Stepper("Alert every \(daysBetweenAlerts) day(s)", value: $daysBetweenAlerts, in: 0...14)
+                    HStack {
+                        Text("Follow up Interval")
+                        Spacer(minLength: 25)
+                        Picker("Follow up Interval", selection: $appState.followUpInterval) {
+//                            Text("5s").tag(5)
+                            Text("10s").tag(10)
+                            Text("60s").tag(60)
+                            Text("5m").tag(300)
+                            Text("10m").tag(600)
                         }
-                    } label: {
-                        if item.isEmpty {
-                            HStack {
-                                Text(item.timestamp, format: Date.FormatStyle(date: .abbreviated, time: .omitted))
-                                Spacer()
-                                Text("Pending")
-                                    .foregroundStyle(.secondary)
+                        .pickerStyle(.segmented)
+                    }
+                    
+                    Stepper("Follow up \(appState.numberOfFollowUps) times", value: $appState.numberOfFollowUps, in: 0...20)
+                    
+                    HStack {
+                        if items.filter({!$0.isEmpty}).count > 0 {
+                            Button("Save") {
+                                scheduleAlerts()
                             }
+                            .foregroundStyle(.blue)
+                            .bold()
                         } else {
-                            Text(item.timestamp, format: Date.FormatStyle(date: .abbreviated, time: .shortened))
+                            Button("Start") {
+                                scheduleAlerts()
+                            }
+                            .foregroundStyle(.blue)
+                            .bold()
                         }
+                        
                     }
                 }
-                .onDelete(perform: deleteItems)
-//                ForEach(items) { item in
-//                    NavigationLink {
-//                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-//                    } label: {
-//                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-//                    }
-//                }
-//                .onDelete(perform: deleteItems)
+            
+                Section("Log History") {
+                    ForEach(items.sorted(by: { $0.timestamp < $1.timestamp })) { item in
+                        if !item.isEmpty {
+                            NavigationLink {
+                                ExposureItemDetail(exposureItem: item)
+                            } label: {
+                                Text(item.timestamp, format: Date.FormatStyle(date: .abbreviated, time: .shortened))
+                            }
+                        }
+                    }.onDelete(perform: deleteItems)
+                }
+                
+                Section("Upcoming") {
+                    ForEach(items.sorted(by: { $0.timestamp < $1.timestamp })) { item in
+                        if item.isEmpty {
+                            NavigationLink {
+                                
+                            } label: {
+                                HStack {
+                                    Text(item.timestamp, format: Date.FormatStyle(date: .abbreviated, time: .omitted))
+                                    Spacer()
+                                    Text("Pending")
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                    }.onDelete(perform: deleteItems)
+                }
+                
+                Button("Reset") {
+                    removeAlerts()
+                }.foregroundStyle(.red)
+                
             }
+            .navigationTitle("Exposure Alert")
         } detail: {
             Text("Select an item")
         }
@@ -80,6 +100,7 @@ struct ContentView: View {
     
     private func scheduleAlerts() {
         requestPermission()
+        removeAlerts()
         
         let category = UNNotificationCategory(
             identifier: "exposureInput",
@@ -104,10 +125,10 @@ struct ContentView: View {
             let cal = Calendar.current
             
             let randomOffset = Int.random(in: -27000..<27000)
-            var interval = daysBetweenAlerts * 24 * 60 * 60 * (i) + 10
+            var interval = daysBetweenAlerts * 24 * 60 * 60 * (i+1) // + 2
             var startDate = cal.dateComponents([.year, .month, .day, .hour, .minute, .second], from: Date())
             
-            if i > 0 {
+            if i >= 0 {
                 startDate.hour = 14
                 startDate.minute = 30
                 interval += randomOffset
@@ -179,4 +200,5 @@ struct ContentView: View {
 #Preview {
     ContentView()
         .modelContainer(for: ExposureItem.self, inMemory: true)
+        .environmentObject(AppState())
 }
