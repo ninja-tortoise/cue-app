@@ -23,21 +23,30 @@ struct ExposureInputView: View {
         NavigationView {
             Form {
                 if !appState.isFollowUp {
-                    Section(header: Text("Preparation")) {
-                        Text("How likely is it that you will die right now?\n\n\(likelihood)%")
-                        Slider(value: Binding(get: { Double(likelihood) }, set: { likelihood = Int($0) }), in: 0...100, step: 1) {
-                            Text("Likelihood")
+                    Section() {
+                        Text("How likely is it that the feared outcome will happen now?")
+                        Picker("Likelihood", selection: $likelihood) {
+                            Text("Nil").tag(0)
+                            Text("Low").tag(25)
+                            Text("Moderate").tag(50)
+                            Text("High").tag(75)
+                            Text("Certain").tag(100)
                         }
-                        
-                        Text("How severe would it be if you died?\n\n\(severity)%")
-                        Slider(value: Binding(get: { Double(severity) }, set: { severity = Int($0) }), in: 0...100, step: 1) {
-                            Text("Severity")
+                    }
+                    Section() {
+                        Text("How severe would it be if the feared outcome happened now?")
+                        Picker("Severity", selection: $severity) {
+                            Text("Nil").tag(0)
+                            Text("Low").tag(25)
+                            Text("Moderate").tag(50)
+                            Text("High").tag(75)
+                            Text("Certain").tag(100)
                         }
                     }
                 }
                 
                 Section(header: Text("Level of Distress")) {
-                    Text("Please record your current Subjective Units of Distress (SUDS) level.\n\nCurrent Distress: \(currentDistress)")
+                    Text("Please record your current Subjective Units of Distress (SUDS) level.\n\n0 = no anxiety\n50 = significant anxiety\n100 = extreme anxiety\n\nCurrent Distress: \(currentDistress)")
                     Slider(value: Binding(get: { Double(currentDistress) }, set: { currentDistress = Int($0) }), in: 0...100, step: 5) {
                         Text("Level of Distress")
                     }

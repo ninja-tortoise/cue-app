@@ -37,7 +37,7 @@ struct ContentView: View {
                     Stepper("Follow up \(appState.numberOfFollowUps) times", value: $appState.numberOfFollowUps, in: 0...20)
                     
                     HStack {
-                        if items.filter({!$0.isEmpty}).count > 0 {
+                        if items.count > 0 {
                             Button("Save") {
                                 scheduleAlerts()
                             }
@@ -63,7 +63,7 @@ struct ContentView: View {
                                 Text(item.timestamp, format: Date.FormatStyle(date: .abbreviated, time: .shortened))
                             }
                         }
-                    }.onDelete(perform: deleteItems)
+                    }.onDelete(perform: deleteLoggedItem)
                 }
                 
                 Section("Upcoming") {
@@ -80,7 +80,7 @@ struct ContentView: View {
                                 }
                             }
                         }
-                    }.onDelete(perform: deleteItems)
+                    }.onDelete(perform: deleteUpcomingItem)
                 }
                 
                 Button("Reset") {
@@ -125,7 +125,7 @@ struct ContentView: View {
             let cal = Calendar.current
             
             let randomOffset = Int.random(in: -27000..<27000)
-            var interval = daysBetweenAlerts * 24 * 60 * 60 * (i+1) // + 2
+            var interval = daysBetweenAlerts * 24 * 60 * 60 * (i) // + 2
             var startDate = cal.dateComponents([.year, .month, .day, .hour, .minute, .second], from: Date())
             
             if i >= 0 {
@@ -145,7 +145,7 @@ struct ContentView: View {
                 withAnimation {
                     let newItem = ExposureItem(uuid: uuid, at: fireDate)
                     modelContext.insert(newItem)
-                    print("NEW EXPOSURE: \(uuid) | \(fireDate) | \(i)")
+                    print("NEW EXPOSURE: \(uuid) | \(fireDate.formatted()) | \(i)")
                 }
             }
         }
@@ -179,19 +179,21 @@ struct ContentView: View {
             }
         }
     }
-
-//    private func addItem() {
-//        withAnimation {
-//            let newItem = ExposureItem(timestamp: Date())
-//            modelContext.insert(newItem)
-//            print("added")
-//        }
-//    }
-
-    private func deleteItems(offsets: IndexSet) {
+    
+    private func deleteLoggedItem(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
-                modelContext.delete(items[index])
+                let loggedItems = items.filter({!$0.isEmpty})
+                modelContext.delete(loggedItems.sorted(by: { $0.timestamp < $1.timestamp })[index])
+            }
+        }
+    }
+
+    private func deleteUpcomingItem(offsets: IndexSet) {
+        withAnimation {
+            for index in offsets {
+                let upcomingItems = items.filter({$0.isEmpty})
+                modelContext.delete(upcomingItems.sorted(by: { $0.timestamp < $1.timestamp })[index])
             }
         }
     }

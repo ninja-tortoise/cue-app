@@ -8,7 +8,14 @@
 import SwiftUI
 import Charts
 
+class ViewModel: ObservableObject {
+   @Published var xAxisStride: Int = 2
+   @Published var duration: Int = 0
+}
+
 struct ExposureItemDetail: View {
+    @StateObject private var vm = ViewModel()
+    
     var exposureItem: ExposureItem
     
     var minTime: Double = 0.0
@@ -29,15 +36,39 @@ struct ExposureItemDetail: View {
                     HStack {
                         Text("Severity")
                         Spacer()
-                        Text("\(exposureItem.severity) %")
-                            .bold()
+                        switch exposureItem.severity {
+                        case 0:
+                            Text("Nil")
+                        case let x where x <= 25:
+                            Text("Low")
+                        case let x where x <= 50:
+                            Text("Moderate")
+                        case let x where x <= 100:
+                            Text("High")
+                        case 100:
+                            Text("Certain")
+                        default:
+                            Text("\(exposureItem.severity)%")
+                        }
                     }
                     
                     HStack {
                         Text("Likelihood")
                         Spacer()
-                        Text("\(exposureItem.likelihood) %")
-                            .bold()
+                        switch exposureItem.likelihood {
+                        case 0:
+                            Text("Nil")
+                        case let x where x <= 25:
+                            Text("Low")
+                        case let x where x <= 50:
+                            Text("Moderate")
+                        case let x where x <= 100:
+                            Text("High")
+                        case 100:
+                            Text("Certain")
+                        default:
+                            Text("\(exposureItem.likelihood)%")
+                        }
                     }
                 }
                 
@@ -55,56 +86,61 @@ struct ExposureItemDetail: View {
                             BarMark(
                                 x: .value("Time", Date(timeIntervalSince1970: Double(key)!), unit: .second),
                                 y: .value("Distress Level", value),
-                                width: .fixed(25)
+                                width: .fixed(15)
                             ).foregroundStyle(.mint)
-//                                .clipShape(Capsule())
                             
                         }.chartPlotStyle { chartContent in
                             chartContent
                                 .background(Color.secondary.opacity(0.0))
                                 .frame(height: 240)
                             
-                        }.chartYScale(domain: [0, 110])
-                        .chartYAxis {
+                        }.chartYScale(
+                            domain: [0, 110]
+                            
+                        ).chartYAxis {
                             AxisMarks(
                                 format: Decimal.FormatStyle.Percent.percent.scale(1),
                                 position: .leading,
                                 values: [0, 20, 40, 60, 80, 100]
                             )
-                        }.chartXAxis {
-                            AxisMarks(values: .stride(by: .minute, count: 2))
+                            
                         }.chartXScale(domain: .automatic(dataType: Date.self) { dates in
                             var initial_dates = exposureItem.distressDict.keys.map({ Date(timeIntervalSince1970: Double($0)!) })
                             initial_dates.sort()
                             
                             let duration = Int(dates.last!.timeIntervalSinceReferenceDate - dates.first!.timeIntervalSinceReferenceDate)
                             
+                            DispatchQueue.main.async {
+                                vm.duration = duration
+                                updateStride()
+                            }
+                            
+                            
                             let calendar = Calendar.current
-                            let earliestDate = calendar.date(byAdding: .second, value: -(duration/3), to: dates.first!)!
-                            let latestDate = calendar.date(byAdding: .second, value: (duration/3), to: dates.last!)!
+                            let earliestDate = calendar.date(byAdding: .second, value: -(duration/10), to: dates.first!)!
+                            let latestDate = calendar.date(byAdding: .second, value: (duration/10), to: dates.last!)!
                             
                             initial_dates.append(earliestDate)
                             initial_dates.append(latestDate)
                             initial_dates.sort()
                             
                             dates = initial_dates
-                        })
+                        }).chartXAxis {
+                            AxisMarks(values: .stride(by: .minute, count: vm.xAxisStride, roundLowerBound: true, roundUpperBound: true))
+                        }
                     }
                 }
-                
             }
         }
     }
     
-//    private func getChartDomain() {
-//        
-//        ForEach(exposureItem.distressDict.sorted(by: >), id: \.key) { key, value in
-//            if Double(key)! < minTime {
-//                minTime = Double(key)!
-//            }
-//        }
-//        
-//    }
+    private func updateStride() {
+        DispatchQueue.main.async {
+            let strideDuration = Double(vm.duration)/60.0/3.0
+            vm.xAxisStride = Int(ceil(strideDuration))
+        }
+        
+    }
 }
 
 
