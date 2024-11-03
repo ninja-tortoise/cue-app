@@ -78,6 +78,8 @@ struct ExposureItemDetail: View {
                             Text("Your Subjective Units of Distress (SUDS) level over time.")
 //                                .font(.system(size: 12))
                         }
+                        .padding(.top, 10)
+                        .padding(.bottom, 20)
                         
                         Chart(
                             exposureItem.distressDict.sorted(by: >), id: \.key
@@ -128,8 +130,13 @@ struct ExposureItemDetail: View {
                         }).chartXAxis {
                             AxisMarks(values: .stride(by: .minute, count: vm.xAxisStride, roundLowerBound: true, roundUpperBound: true))
                         }
+                        .padding(.bottom, 12)
                     }
                 }
+                
+                Button("Export as PDF") {
+                    exportPDF()
+                }.foregroundStyle(.blue)
             }
         }
     }
@@ -139,6 +146,10 @@ struct ExposureItemDetail: View {
             let strideDuration = Double(vm.duration)/60.0/3.0
             vm.xAxisStride = Int(ceil(strideDuration))
         }
+        
+    }
+    
+    private func exportPDF() {
         
     }
 }

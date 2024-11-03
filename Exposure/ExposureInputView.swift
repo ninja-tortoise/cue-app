@@ -24,7 +24,7 @@ struct ExposureInputView: View {
             Form {
                 if !appState.isFollowUp {
                     Section() {
-                        Text("How likely is it that the feared outcome will happen now?")
+                        Text("How likely is it that the feared outcome \(appState.fearedOutcome != "" ? "(\(appState.fearedOutcome))" : "") will happen now?")
                         Picker("Likelihood", selection: $likelihood) {
                             Text("Nil").tag(0)
                             Text("Low").tag(25)
@@ -34,7 +34,7 @@ struct ExposureInputView: View {
                         }
                     }
                     Section() {
-                        Text("How severe would it be if the feared outcome happened now?")
+                        Text("How severe would it be if the feared outcome \(appState.fearedOutcome != "" ? "(\(appState.fearedOutcome))" : "") happened now?")
                         Picker("Severity", selection: $severity) {
                             Text("Nil").tag(0)
                             Text("Low").tag(25)
@@ -49,7 +49,7 @@ struct ExposureInputView: View {
                     Text("Please record your current Subjective Units of Distress (SUDS) level.\n\n0 = no anxiety\n50 = significant anxiety\n100 = extreme anxiety\n\nCurrent Distress: \(currentDistress)")
                     Slider(value: Binding(get: { Double(currentDistress) }, set: { currentDistress = Int($0) }), in: 0...100, step: 5) {
                         Text("Level of Distress")
-                    }
+                    }.padding(.vertical, 8)
                 }
                 
                 Button("Submit") {

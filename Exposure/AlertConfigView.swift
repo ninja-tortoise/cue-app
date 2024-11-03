@@ -1,0 +1,187 @@
+//
+//  AlertConfigView.swift
+//  Exposure
+//
+//  Created by Toby on 1/11/2024.
+//
+
+import SwiftUI
+import SwiftData
+import UserNotifications
+
+struct AlertConfigView: View {
+    @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject var appState: AppState
+    @Query private var items: [ExposureItem]
+
+    var body: some View {
+        NavigationView {
+            Form {
+                
+                // NOTIFICATION PREVIEW
+                Section("Alert Preview") {
+                    HStack {
+                        Image(.icon)
+                            .resizable()
+                            .frame(width: 40, height: 40, alignment: .bottom)
+                            .clipShape(RoundedRectangle(cornerRadius: 15))
+                            .padding(.vertical, 8)
+                        VStack {
+                            Text("\(appState.customAlertText ? appState.customAlertTitle : appState.defaultAlertTitle)\n\(appState.customAlertText ? appState.customAlertDesc : appState.defaultAlertDesc)")
+                                .font(.headline)
+                                .foregroundStyle(.black)
+                                .lineLimit(2)
+                        }.padding(.leading, 8)
+                    }
+                }.listRowBackground(
+                    LinearGradient(gradient: Gradient(colors: [.white]), startPoint: .top, endPoint: .bottom)
+                ).disabled(true)
+                
+                // ALERT TIMES
+                Section {
+                     
+                    withAnimation {
+                        Toggle("Customise message", isOn: $appState.customAlertText)
+                            .onChange(of: appState.customAlertText) {
+                                scheduleAlerts()
+                            }
+                    }
+                    
+                    if appState.customAlertText {
+                        TextField("Alert Title", text: $appState.customAlertTitle)
+                            .textInputAutocapitalization(.never)
+                            .disableAutocorrection(true)
+                            .bold()
+                            .disabled(!appState.customAlertText)
+                            .foregroundStyle(appState.customAlertText ? .primary : .secondary)
+                            .onAppear { UITextField.appearance().clearButtonMode = .always }
+                            .onChange(of: appState.customAlertTitle) {
+                                scheduleAlerts()
+                            }
+                        
+                        TextField("Alert Description", text: $appState.customAlertDesc)
+                            .textInputAutocapitalization(.never)
+                            .disableAutocorrection(true)
+                            .lineLimit(1)
+                            .bold()
+                            .disabled(!appState.customAlertText)
+                            .foregroundStyle(appState.customAlertText ? .primary : .secondary)
+                            .onAppear { UITextField.appearance().clearButtonMode = .always }
+                            .onChange(of: appState.customAlertDesc) {
+                                scheduleAlerts()
+                            }
+                    }
+                    
+                    Picker("Only send after", selection: $appState.alertStartHr) {
+                        ForEach(0..<24, id: \.self) {
+                            let hour = $0
+                            if hour != appState.alertEndHr {
+                                if hour > 12 {
+                                    Text("\(hour - 12):00\(hour >= 12 ? "pm" : "am")").tag($0)
+                                } else {
+                                    Text("\(hour == 0 ? 12 : hour):00\(hour >= 12 ? "pm" : "am")").tag($0)
+                                }
+                            }
+                        }
+                    }.onChange(of: appState.alertStartHr) {
+                        scheduleAlerts()
+                    }
+                    
+                    Picker("Only send before", selection: $appState.alertEndHr) {
+                        ForEach(0..<24, id: \.self) {
+                            let hour = $0
+                            if hour != appState.alertStartHr {
+                                if hour > 12 {
+                                    Text("\(hour - 12):00\(hour >= 12 ? "pm" : "am")").tag($0)
+                                } else {
+                                    Text("\(hour == 0 ? 12 : hour):00\(hour >= 12 ? "pm" : "am")").tag($0)
+                                }
+                            }
+                        }
+                    }.onChange(of: appState.alertEndHr) {
+                        scheduleAlerts()
+                    }
+                    
+                    Stepper("Send once every \(appState.daysBetweenAlerts == 1 ? "day" : "\(appState.daysBetweenAlerts) days")",
+                            value: $appState.daysBetweenAlerts, in: 1...14)
+                        .onChange(of: appState.daysBetweenAlerts) {
+                            scheduleAlerts()
+                        }
+                    
+                } header: {
+                    Text("Alert Settings")
+                } footer: {
+                    Text("This alert will randomly appear during the specified hours, simulating the feared outcome.")
+                }
+                
+                Section {
+                    HStack {
+                        Text("Follow up after")
+                        Spacer(minLength: 25)
+                        Picker("Follow up after", selection: $appState.followUpInterval) {
+                            Text("30s").tag(30)
+                            Text("1m").tag(60)
+                            Text("5m").tag(300)
+                            Text("10m").tag(600)
+                        }
+                        .pickerStyle(.segmented)
+                    }
+                    
+                    Stepper("Follow up \(appState.numberOfFollowUps) times", value: $appState.numberOfFollowUps, in: 0...20)
+                } header: {
+                    Text("Follow Ups")
+                } footer: {
+                    Text("Follow up alerts ask you to re-evaluate your distress level after exposure. This is tracked over time and displayed for review.")
+                }
+            }
+            .navigationTitle("Configure Alerts")
+        }
+    }
+    
+    private func scheduleAlerts() {
+        requestPermission()
+        removeAlerts()
+        
+        let newItems = appState.scheduleAlerts()
+        for item in newItems {
+            modelContext.insert(item)
+        }
+    }
+    
+    private func removeAlerts() {
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+        UNUserNotificationCenter.current().removeAllDeliveredNotifications()
+        
+        print("Removed all upcoming notifications")
+        
+        withAnimation {
+            for currItem in items {
+                if currItem.isEmpty {
+                    modelContext.delete(currItem)
+                }
+            }
+            
+            do {
+                try modelContext.save()
+            } catch {
+                print("uh oh")
+            }
+        }
+    }
+    
+    private func requestPermission() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { success , error in
+            if success {
+                print("lets go")
+            } else if let error {
+                print(error.localizedDescription)
+            }
+        }
+    }
+}
+
+#Preview {
+    AlertConfigView()
+//        .modelContainer(for: ExposureItem.self, inMemory: true)
+        .environmentObject(AppState())
+}
