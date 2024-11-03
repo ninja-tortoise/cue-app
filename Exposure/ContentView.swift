@@ -18,7 +18,7 @@ struct ContentView: View {
         TabView {
             
             Tab("Configure", systemImage: "gearshape.2.fill") {
-                AlertConfigView()
+                GeneralConfigView()
             }
             
             Tab("History", systemImage: "chart.line.text.clipboard") {
