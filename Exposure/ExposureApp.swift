@@ -45,7 +45,7 @@ struct ExposureApp: App {
             ) { notification in
                 if let uuid = notification.userInfo?["uuid"] as? UUID {
                     appState.isFollowUp = notification.userInfo?["isFollowUp"] as? Bool ?? false
-                    appState.currentExposureUUID = uuid
+                    appState.currentExposureUUID = uuid.uuidString
                     appState.isExposureInputViewPresented = true
                 }
             }
@@ -55,6 +55,7 @@ struct ExposureApp: App {
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         UNUserNotificationCenter.current().delegate = self
+        registerDefaults()
         return true
     }
     
@@ -80,28 +81,48 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         }
         completionHandler()
     }
+    
+    func registerDefaults() {
+        UserDefaults.standard.register(defaults: ["navItemSelected" : "default",
+                                                  "isExposureInputViewPresented" : false,
+                                                  "currentExposureUUID" : "default-uuid-string",
+                                                  "isFollowUp" : false,
+                                                  "numberOfFollowUps" : 4,
+                                                  "followUpInterval" : 60,
+                                                  "fearedOutcome" : "",
+                                                  "postAlertReminder" : "",
+                                                  "customAlertText" : false,
+                                                  "customAlertTitle" : "You're about to die!",
+                                                  "customAlertDesc" : "What are your final thoughts?",
+                                                  "defaultAlertTitle" : "Exposure Alert",
+                                                  "defaultAlertDesc" : "Open to log your reaction",
+                                                  "alertStartHr" : 7,
+                                                  "alertEndHr" : 22,
+                                                  "daysBetweenAlerts" : 2
+                                                 ])
+    }
 }
 
 class AppState: ObservableObject {
     @Environment(\.modelContext) private var modelContext
     
-    @Published var isExposureInputViewPresented = false
-    @Published var currentExposureUUID: UUID?
-    @Published var isFollowUp: Bool = false
-    @Published var numberOfFollowUps: Int = 4
-    @Published var followUpInterval: Int = 60
+    @AppStorage("isExposureInputViewPresented") var isExposureInputViewPresented = false
+    @AppStorage("currentExposureUUID") var currentExposureUUID = "default-uuid-string"
+    @AppStorage("isFollowUp") var isFollowUp: Bool = false
+    @AppStorage("numberOfFollowUps") var numberOfFollowUps: Int = 4
+    @AppStorage("followUpInterval") var followUpInterval: Int = 60
     
-    @Published var fearedOutcome: String = ""
-    @Published var postAlertReminder: String = ""
+    @AppStorage("fearedOutcome") var fearedOutcome: String = ""
+    @AppStorage("postAlertReminder") var postAlertReminder: String = ""
     
-    @Published var customAlertText: Bool = false
-    @Published var customAlertTitle: String = "You're about to die!"
-    @Published var customAlertDesc: String = "What are your final thoughts?"
-    @Published var defaultAlertTitle: String = "Exposure Alert"
-    @Published var defaultAlertDesc: String = "Open to log your reaction"
-    @Published var alertStartHr: Int = 7
-    @Published var alertEndHr: Int = 22
-    @Published var daysBetweenAlerts = 2
+    @AppStorage("customAlertText") var customAlertText: Bool = false
+    @AppStorage("customAlertTitle") var customAlertTitle: String = "You're about to die!"
+    @AppStorage("customAlertDesc") var customAlertDesc: String = "What are your final thoughts?"
+    @AppStorage("defaultAlertTitle") var defaultAlertTitle: String = "Exposure Alert"
+    @AppStorage("defaultAlertDesc") var defaultAlertDesc: String = "Open to log your reaction"
+    @AppStorage("alertStartHr") var alertStartHr: Int = 7
+    @AppStorage("alertEndHr") var alertEndHr: Int = 22
+    @AppStorage("daysBetweenAlerts") var daysBetweenAlerts = 2
     
     func scheduleAlerts() -> [ExposureItem] {
         
@@ -133,6 +154,10 @@ class AppState: ObservableObject {
             let randomOffset = Int.random(in: -(randSecondsRange/2)..<(randSecondsRange/2))
             var interval = daysBetweenAlerts * 24 * 60 * 60 * (i)
             var startDate = cal.dateComponents([.year, .month, .day, .hour, .minute, .second], from: Date())
+            
+//            if i == 0 {
+//                interval = 10
+//            }
             
             if i >= 0 {
                 let hourOffset = Double(alertEndHr - alertStartHr)/2.0 + Double(alertStartHr)
