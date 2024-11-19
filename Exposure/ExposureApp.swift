@@ -84,10 +84,9 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     
     func registerDefaults() {
         UserDefaults.standard.register(defaults: ["navItemSelected" : "default",
-                                                  "isExposureInputViewPresented" : false,
-                                                  "currentExposureUUID" : "default-uuid-string",
-                                                  "isFollowUp" : false,
-                                                  "numberOfFollowUps" : 4,
+//                                                  "currentExposureUUID" : "default-uuid-string",
+//                                                  "isFollowUp" : false,
+                                                  "numberOfFollowUps" : 5,
                                                   "followUpInterval" : 60,
                                                   "fearedOutcome" : "",
                                                   "postAlertReminder" : "",
@@ -105,11 +104,11 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
 
 class AppState: ObservableObject {
     @Environment(\.modelContext) private var modelContext
+    @Published var isExposureInputViewPresented = false
+    @Published var currentExposureUUID = "default-uuid-string"
+    @Published var isFollowUp: Bool = false
     
-    @AppStorage("isExposureInputViewPresented") var isExposureInputViewPresented = false
-    @AppStorage("currentExposureUUID") var currentExposureUUID = "default-uuid-string"
-    @AppStorage("isFollowUp") var isFollowUp: Bool = false
-    @AppStorage("numberOfFollowUps") var numberOfFollowUps: Int = 4
+    @AppStorage("numberOfFollowUps") var numberOfFollowUps: Int = 5
     @AppStorage("followUpInterval") var followUpInterval: Int = 60
     
     @AppStorage("fearedOutcome") var fearedOutcome: String = ""
@@ -154,12 +153,18 @@ class AppState: ObservableObject {
             let randomOffset = Int.random(in: -(randSecondsRange/2)..<(randSecondsRange/2))
             var interval = daysBetweenAlerts * 24 * 60 * 60 * (i)
             var startDate = cal.dateComponents([.year, .month, .day, .hour, .minute, .second], from: Date())
+            var testing = false
             
-//            if i == 0 {
-//                interval = 10
-//            }
+            #if DEBUG
+            if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
+                if i == 0 {
+                    interval = -120
+                    testing = true
+                }
+            }
+            #endif
             
-            if i >= 0 {
+            if i >= 0 && !testing {
                 let hourOffset = Double(alertEndHr - alertStartHr)/2.0 + Double(alertStartHr)
                 startDate.hour = Int(floor(hourOffset))
                 startDate.minute = Int(hourOffset.truncatingRemainder(dividingBy: 1) * 60)
