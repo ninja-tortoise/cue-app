@@ -1,6 +1,20 @@
+//
+//  DistressBarChart.swift
+//  Exposure
+//
+//  Created by Toby on 19/11/2024.
+//
+
+import SwiftUICore
+import SwiftUI
+import Charts
+
 struct DistressBarChart: View {
-    @StateObject private var vm = ViewModel()
+    @StateObject var vm = ViewModel()
     var item: ExposureItem
+    var barWidth: CGFloat = 15
+    var chartFont: Font = .title2
+    
     var body: some View {
 
         let logData = item.distressDict.sorted(by: <)
@@ -15,14 +29,14 @@ struct DistressBarChart: View {
                 BarMark(
                     x: .value("Time", Date(timeIntervalSince1970: Double(key)!), unit: .second),
                     y: .value("Distress Level", value),
-                    width: .fixed(15)
+                    width: .fixed(barWidth)
                 ).foregroundStyle(.orange)
                     .clipShape(
                         .rect(
-                            topLeadingRadius: 8,
+                            topLeadingRadius: barWidth/2,
                             bottomLeadingRadius: 0,
                             bottomTrailingRadius: 0,
-                            topTrailingRadius: 8
+                            topTrailingRadius: barWidth/2
                         )
                     )
                 
@@ -30,14 +44,14 @@ struct DistressBarChart: View {
                 BarMark(
                     x: .value("Time", Date(timeIntervalSince1970: Double(key)!), unit: .second),
                     y: .value("Distress Level", value),
-                    width: .fixed(15)
+                    width: .fixed(barWidth)
                 ).foregroundStyle(.teal)
                     .clipShape(
                         .rect(
-                            topLeadingRadius: 8,
+                            topLeadingRadius: barWidth/2,
                             bottomLeadingRadius: 0,
                             bottomTrailingRadius: 0,
-                            topTrailingRadius: 8
+                            topTrailingRadius: barWidth/2
                         )
                     )
             }
@@ -45,17 +59,24 @@ struct DistressBarChart: View {
         }.chartPlotStyle { chartContent in
             chartContent
                 .background(Color.secondary.opacity(0.0))
-                .frame(height: 240)
             
         }.chartYScale(
-            domain: [0, 110]
+            domain: [0, 100]
             
         ).chartYAxis {
             AxisMarks(
-                format: Decimal.FormatStyle.Percent.percent.scale(1),
                 position: .leading,
                 values: [0, 20, 40, 60, 80, 100]
-            )
+            ) {
+                AxisValueLabel(format: Decimal.FormatStyle.Percent.percent.scale(1))
+                    .font(chartFont)
+            }
+            
+            AxisMarks(
+                values: [0, 20, 40, 60, 80, 100]
+            ) {
+                AxisGridLine()
+            }
             
         }.chartXScale(domain: .automatic(dataType: Date.self) { dates in
             var initial_dates = item.distressDict.keys.map({ Date(timeIntervalSince1970: Double($0)!) })
@@ -68,7 +89,6 @@ struct DistressBarChart: View {
                 updateStride()
             }
             
-            
             let calendar = Calendar.current
             let earliestDate = calendar.date(byAdding: .second, value: -(duration/10), to: dates.first!)!
             let latestDate = calendar.date(byAdding: .second, value: (duration/10), to: dates.last!)!
@@ -79,15 +99,35 @@ struct DistressBarChart: View {
             
             dates = initial_dates
         }).chartXAxis {
-            AxisMarks(values: .stride(by: .minute, count: vm.xAxisStride, roundLowerBound: true, roundUpperBound: true))
+            AxisMarks(
+                values: .stride(by: .minute, count: vm.xAxisStride, roundLowerBound: true, roundUpperBound: true)
+            ) {
+                AxisValueLabel().font(chartFont)
+            }
+            
+            AxisMarks(
+                values: .stride(by: .minute, count: vm.xAxisStride, roundLowerBound: true, roundUpperBound: true)
+            ) {
+                AxisGridLine()
+            }
+        }
+        .chartXAxisLabel(position: .bottom, alignment: .center) {
+            Text("Time of Day")
+                .font(chartFont)
+        }
+        .chartYAxisLabel(position: .leading, alignment: .center) {
+            Text("Subjective Units of Distress (SUDS)")
+                .font(chartFont)
+                .rotationEffect(Angle(degrees: -180))
+                .padding(10)
         }
         .padding(.vertical, 10)
     }
     
     private func updateStride() {
-        DispatchQueue.main.async {
+//        DispatchQueue.main.async {
             let strideDuration = Double(vm.duration)/60.0/3.0
             vm.xAxisStride = Int(ceil(strideDuration))
-        }
+//        }
     }
 }
