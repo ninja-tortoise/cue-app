@@ -13,14 +13,16 @@ struct GeneralConfigView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var appState: AppState
     @Query private var items: [ExposureItem]
+    @FocusState private var isFocused: Bool
 
     var body: some View {
         NavigationView {
             List {
                 
-                
-                Text("You will receive random notifications that are supposed to simulate an exposure event. When you open the notification, you'll be taken into the app to record your distress level.")
-                    .disabled(true)
+                Section {
+                    Text("You can personalise your reports & logging pages by including your feared outcome. Post-exposure messages can provide helpful thoughts during exposure.")
+                        .disabled(true)
+                }
                 
                 // FEARED OUTCOME
                 Section {
@@ -35,26 +37,40 @@ struct GeneralConfigView: View {
 
                 // REMINDER
                 Section {
-                    TextField("Example: Thinking back on your life, what are you proudest moments?", text: $appState.postAlertReminder, axis: .vertical)
+                    TextField("Example: Thinking back on your life, what are your proudest moments?", text: $appState.postAlertReminder, axis: .vertical)
                         .textInputAutocapitalization(.never)
                         .disableAutocorrection(true)
                         .lineLimit(2...10)
+                        .focused($isFocused)
+                        .keyboardType(.alphabet)
+                        .submitLabel(.done)
+                        .onSubmit {
+                            isFocused = false
+                        }
+                        .onChange(of: appState.postAlertReminder) {
+                            guard isFocused else { return }
+                            guard appState.postAlertReminder.contains("\n") else { return }
+                            isFocused = false
+                            appState.postAlertReminder = appState.postAlertReminder.replacing("\n", with: "")
+                        }
                 } header: {
                     Text("Post-exposure Message")
                 } footer: {
-                    Text("Do you have any messages you want to receive after the initial exposure?")
+                    Text("Do you have any messages you want to receive after the initial exposure? What will help lower your distress levels?")
                 }
                 
-                Section("Alerts") {
-                    NavigationLink {
-                        AlertConfigView()
-                    } label: {
-                        Text("Configure Alerts")
-                    }
-                }
+//                Section("Alerts") {
+//                    NavigationLink {
+//                        AlertConfigView()
+//                    } label: {
+//                        Text("Configure Alerts")
+//                    }
+//                }
                 
             }
-//            .navigationTitle("Configure Alerts")
+            .navigationTitle("Your Fear")
+            .scrollDismissesKeyboard(.immediately)
+            
         }
     }
 }
