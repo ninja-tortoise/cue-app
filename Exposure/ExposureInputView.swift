@@ -18,6 +18,7 @@ struct ExposureInputView: View {
     @State private var currentDistress: Int = 0
     @State private var answer1: String = ""
     @State private var answer2: String = ""
+    @State private var showingAlert = false
     
     var body: some View {
         NavigationView {
@@ -45,7 +46,7 @@ struct ExposureInputView: View {
                     }
                 }
                 
-                Section(header: Text("Level of Distress")) {
+                Section() {
                     Text("Please record your current Subjective Units of Distress (SUDS) level.\n\n0 = no anxiety\n50 = significant anxiety\n100 = extreme anxiety\n\nCurrent Distress: \(currentDistress)")
                     Slider(value: Binding(get: { Double(currentDistress) }, set: { currentDistress = Int($0) }), in: 0...100, step: 5) {
                         Text("Level of Distress")
@@ -53,23 +54,46 @@ struct ExposureInputView: View {
                 }
                 
                 Button("Submit") {
-                    if let uuid = appState.currentExposureUUID,
-                       let exposureItem = exposureItems.first(where: { $0.uuid == uuid }) {
+                    let uuid = appState.currentExposureUUID
+                    
+                    // Find matching exposure alert
+                    if let exposureItem = exposureItems.first(where: { $0.uuid.uuidString == uuid }) {
+                        
+                        // Save likelihood, severity & timestamp for initial data log
                         if exposureItem.isEmpty && !appState.isFollowUp {
                             exposureItem.isEmpty = false
                             exposureItem.likelihood = likelihood
                             exposureItem.severity = severity
+                            exposureItem.timestamp = Date()
                         }
                         
+                        // Save distress level
                         exposureItem.distressDict["\(Int(Date().timeIntervalSince1970))"] = currentDistress
                         try? modelContext.save()
-                        appState.isExposureInputViewPresented = false
                         
+                        // Schedule next follow up
                         scheduleFollowUps(exposureItem: exposureItem)
+                        
+                        // Show reminder if user has set, otherwise just close view
+                        if appState.postAlertReminder != "" {
+                            showingAlert = true
+                        } else {
+                            appState.isExposureInputViewPresented = false
+                        }
                     }
                 }
             }
             .navigationTitle("Exposure Log")
+            
+            
+        }
+        
+        .alert(isPresented: $showingAlert) {
+            Alert(
+                title: Text("Post-Exposure Message"),
+                message: Text(appState.postAlertReminder),
+                dismissButton: .default(Text("Dismiss"), action: {
+                    appState.isExposureInputViewPresented = false }))
         }
     }
     
@@ -86,7 +110,7 @@ struct ExposureInputView: View {
         
         let interval = appState.followUpInterval
         
-        if exposureItem.distressDict.keys.count < appState.numberOfFollowUps {
+        if exposureItem.distressDict.keys.count <= appState.numberOfFollowUps {
             
             let content = UNMutableNotificationContent()
             let cal = Calendar.current
@@ -95,7 +119,7 @@ struct ExposureInputView: View {
             content.subtitle = "How are you feeling?"
             content.sound = UNNotificationSound.default
             content.categoryIdentifier = "exposureInput"
-            content.userInfo = ["uuid": appState.currentExposureUUID?.uuidString ?? "nil",
+            content.userInfo = ["uuid": "\($appState.currentExposureUUID)",
                                 "isFollowUp": true]
             
             if let fireDate = cal.date(byAdding: .second, value: interval, to: Date()) {
