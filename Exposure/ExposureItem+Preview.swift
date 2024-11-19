@@ -7,8 +7,54 @@
 
 import Foundation
 import SwiftData
+import SwiftUICore
 
 extension ExposureItem {
+    
+    static var previews: [ExposureItem] {
+        
+        let count = 5
+        let dayInterval = 1
+        let alertStartHr = 7
+        let alertEndHr = 22
+        var expItems: [ExposureItem] = []
+        
+        for dayOffset in 1 ... count {
+            
+            let cal = Calendar.current
+            let randSecondsRange = (alertEndHr - alertStartHr) * 60 * 60
+            let randomOffset = Int.random(in: -(randSecondsRange/2)..<(randSecondsRange/2))
+            var interval = -dayInterval * 24 * 60 * 60 * (dayOffset)
+            var startDate = cal.dateComponents([.year, .month, .day, .hour, .minute, .second], from: Date())
+            
+            let hourOffset = Double(alertEndHr - alertStartHr)/2.0 + Double(alertStartHr)
+            startDate.hour = Int(floor(hourOffset))
+            startDate.minute = Int(hourOffset.truncatingRemainder(dividingBy: 1) * 60)
+            interval += randomOffset
+            
+            if let alertDate = cal.date(from: startDate), let fireDate = cal.date(byAdding: .second, value: interval, to: alertDate) {
+                
+                let timestamp = Int(fireDate.timeIntervalSince1970)
+                let expItem = ExposureItem(uuid: UUID(), at: fireDate)
+                expItem.isEmpty = false
+                expItem.severity = Int.random(in: 0 ... 100)
+                expItem.likelihood = Int.random(in: 0 ... 100)
+                expItem.distressDict = [
+                    "\(timestamp)":                               Int.random(in: 80 ... 100),
+                    "\(timestamp + 1*Int.random(in: 60 ... 70))": Int.random(in: 60 ... 90),
+                    "\(timestamp + 2*Int.random(in: 60 ... 70))": Int.random(in: 40 ... 80),
+                    "\(timestamp + 3*Int.random(in: 60 ... 70))": Int.random(in: 30 ... 70),
+                    "\(timestamp + 4*Int.random(in: 60 ... 70))": Int.random(in: 20 ... 60),
+                    "\(timestamp + 5*Int.random(in: 60 ... 70))": Int.random(in:  0 ... 40),
+                ]
+                
+                expItems.append(expItem)
+            }
+        }
+        
+        return expItems
+    }
+    
     static var preview: ExposureItem {
         let expItem = ExposureItem(uuid: UUID(), at: Date())
         expItem.isEmpty = false
