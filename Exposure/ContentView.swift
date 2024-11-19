@@ -76,6 +76,21 @@ struct ContentView: View {
     }
 }
 
+actor BackgroundImporter {
+    @MainActor
+    var modelContainer: ModelContainer
+
+    @MainActor
+    init(modelContainer: ModelContainer) {
+        self.modelContainer = modelContainer
+        let items = ExposureItem.previews
+
+        for i in 0..<items.count {
+            self.modelContainer.mainContext.insert(items[i])
+        }
+    }
+}
+
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: ExposureItem.self, configurations: config)
