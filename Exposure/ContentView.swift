@@ -17,12 +17,16 @@ struct ContentView: View {
     var body: some View {
         TabView {
             
-            Tab("Configure", systemImage: "gearshape.2.fill") {
+            Tab("Your Fears", systemImage: "pencil.line") {
                 GeneralConfigView()
             }
             
             Tab("History", systemImage: "chart.line.text.clipboard") {
                 ExposureLogView()
+            }
+            
+            Tab("Configure", systemImage: "gearshape.2.fill") {
+                AlertConfigView()
             }
             
         }
@@ -73,7 +77,11 @@ struct ContentView: View {
 }
 
 #Preview {
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: ExposureItem.self, configurations: config)
+    let importer = BackgroundImporter(modelContainer: container)
+
     ContentView()
-        .modelContainer(for: ExposureItem.self, inMemory: true)
+        .modelContainer(container)
         .environmentObject(AppState())
 }
