@@ -7,9 +7,11 @@
 
 import Foundation
 import SwiftData
+import SwiftUICore
 
 @Model
 final class ExposureItem {
+    
     var uuid: UUID
     var timestamp: Date
     
