@@ -119,7 +119,7 @@ struct ExposureInputView: View {
             content.subtitle = "How are you feeling?"
             content.sound = UNNotificationSound.default
             content.categoryIdentifier = "exposureInput"
-            content.userInfo = ["uuid": "\($appState.currentExposureUUID)",
+            content.userInfo = ["uuid": "\(appState.currentExposureUUID)",
                                 "isFollowUp": true]
             
             if let fireDate = cal.date(byAdding: .second, value: interval, to: Date()) {
