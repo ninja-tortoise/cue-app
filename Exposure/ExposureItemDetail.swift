@@ -35,7 +35,9 @@ struct ExposureItemDetail: View {
             }
             
             // MANUAL FOLLOW UP LOG
-            if exposureItem.distressDict.count-1 < appState.numberOfFollowUps {
+            if exposureItem.distressDict.count-1 < appState.numberOfFollowUps &&
+                Int(Date().timeIntervalSince(exposureItem.timestamp)) <= appState.followUpInterval * 5
+            {
                 Button {
                     appState.isFollowUp = true
                     appState.currentExposureUUID = exposureItem.uuid.uuidString

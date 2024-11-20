@@ -284,18 +284,20 @@ struct PendingAlertView: View {
         
         // Alert has already fired, allow user to log exposure
         if Date() > item.timestamp {
-            Button {
-                appState.isFollowUp = false
-                appState.currentExposureUUID = item.uuid.uuidString
-                appState.isExposureInputViewPresented = true
-//                ExposureInputView()
-            } label: {
-                VStack {
-                    HStack {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .abbreviated, time: .omitted))
-                        Spacer()
-                        Text("Complete Now")
-                            .foregroundStyle(.secondary)
+            if Date().timeIntervalSince(item.timestamp) <= 60 * 60 * 24 {
+                Button {
+                    appState.isFollowUp = false
+                    appState.currentExposureUUID = item.uuid.uuidString
+                    appState.isExposureInputViewPresented = true
+    //                ExposureInputView()
+                } label: {
+                    VStack {
+                        HStack {
+                            Text(item.timestamp, format: Date.FormatStyle(date: .abbreviated, time: .omitted))
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            Text("Complete Now")
+                        }
                     }
                 }
             }
