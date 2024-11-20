@@ -67,11 +67,9 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         }
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-
         if response.notification.request.content.categoryIdentifier == "exposureInput" {
             if let uuidString = response.notification.request.content.userInfo["uuid"] as? String,
                let uuid = UUID(uuidString: uuidString) {
-                
                 if let secondsSinceOG = response.notification.request.content.userInfo["isFollowUp"] as? Bool {
                     NotificationCenter.default.post(name: Notification.Name("OpenExposureInputView"), object: nil, userInfo: ["uuid": uuid, "isFollowUp": secondsSinceOG])
                 } else {
@@ -156,12 +154,12 @@ class AppState: ObservableObject {
             var testing = false
             
             #if DEBUG
-            if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
-                if i == 0 {
-                    interval = -120
-                    testing = true
-                }
+//            if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
+            if i == 0 {
+                interval = 10
+                testing = true
             }
+//            }
             #endif
             
             if i >= 0 && !testing {
