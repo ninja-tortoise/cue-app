@@ -47,10 +47,10 @@ struct PDFPageView: View {
                             }
                             
                             VStack(alignment: .leading, spacing: 10) {
-                                Text(appState.fearedOutcome == "" ? "N/A" : appState.fearedOutcome)
+                                Text(appState.fearedOutcome.isEmpty ? "N/A" : appState.fearedOutcome)
                                     .font(.system(size: bodySize))
                                 
-                                Text(appState.postAlertReminder == "" ? "N/A" : appState.postAlertReminder)
+                                Text(appState.postAlertReminder.isEmpty ? "N/A" : appState.postAlertReminder)
                                     .font(.system(size: bodySize))
                             }
                             .padding(.leading, 30)

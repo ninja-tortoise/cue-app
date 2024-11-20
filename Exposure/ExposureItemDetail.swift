@@ -35,7 +35,7 @@ struct ExposureItemDetail: View {
             }
             
             // MANUAL FOLLOW UP LOG
-            if exposureItem.distressDict.count-1 <= appState.numberOfFollowUps {
+            if exposureItem.distressDict.count-1 < appState.numberOfFollowUps {
                 Button {
                     appState.isFollowUp = true
                     appState.currentExposureUUID = exposureItem.uuid.uuidString
@@ -111,40 +111,62 @@ struct ExposureItemDetail: View {
             ShareLink(item: exportPDF()) {
                 Label("Save as PDF", systemImage: "arrow.down.document")
             }
-                .foregroundStyle(.blue)
+//            .foregroundStyle(.blue)
         }
+        .navigationTitle("\(exposureItem.timestamp.formatted())")
     }
     
     private func exportPDF() -> URL {
-        // Render Hello World with some modifiers
-        let renderer = ImageRenderer(content: PDFPageView(exposureItem: exposureItem))
+        
+        let numFirstPageItems = 3
+        let numOtherPageItems = 4
+        
+        let exposures = [exposureItem]
 
-        // Save it to our documents directory
-        let safeDateString = exposureItem.timestamp.formatted(date: .numeric, time: .omitted)
+        // Configure output URL
+        let safeDateString = Date().formatted(date: .numeric, time: .omitted)
                                 .replacingOccurrences(of: "/", with: "-")
         let url = URL.documentsDirectory.appending(path: "Exposure Results \(safeDateString).pdf")
+        
+        // set PDF size to A4 @ 200 DPI
+        var box = CGRect(x: 0, y: 0, width: 1654, height: 2229)
 
-        // Start the rendering process
-        renderer.render { size, context in
+        // Create the CGContext for PDF
+        guard let pdf = CGContext(url as CFURL, mediaBox: &box, nil) else {
+            return url
+        }
+        
+        // Calculate number of pages (3 items first page, 4 items per page after)
+        let numPages = Int(max(ceil(Double((exposures.count + 1)/numOtherPageItems)), 1))
+        
+        let _ = print(numPages)
+        
+        for idx in 0..<numPages {
             
-            // PDF is A4 size @ 200 DPI
-            var box = CGRect(x: 0, y: 0, width: 1654, height: 2229)
-
-            // Create the CGContext for our PDF pages
-            guard let pdf = CGContext(url as CFURL, mediaBox: &box, nil) else {
-                return
-            }
-
             // Start a new PDF page
             pdf.beginPDFPage(nil)
-
+            
+            let numItems = idx == 0 ? numFirstPageItems : numOtherPageItems
+            let range = (idx-1)*numItems+numFirstPageItems ..< min(idx*numItems+numFirstPageItems, exposures.count)
+            
+            let _ = print(numItems)
+            let _ = print(range)
+            
+            let renderer = ImageRenderer(content:
+                PDFPageView(
+                    exposureItems: Array(exposures[range]),
+                    includeHeading: idx == 0
+                ).environmentObject(appState)
+            )
+            
             // Render the SwiftUI view data onto the page
-            context(pdf)
+            renderer.render { size, context in
+                context(pdf)
+            }
 
-            // End the page and close the file
             pdf.endPDFPage()
-            pdf.closePDF()
         }
+        pdf.closePDF()
 
         return url
     }
