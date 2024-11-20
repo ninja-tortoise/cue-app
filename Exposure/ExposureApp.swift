@@ -97,7 +97,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
                                                   "defaultAlertDesc" : "Open to log your reaction",
                                                   "alertStartHr" : 7,
                                                   "alertEndHr" : 22,
-                                                  "daysBetweenAlerts" : 2
+                                                  "daysBetweenAlerts" : 1
                                                  ])
     }
 }
@@ -121,7 +121,7 @@ class AppState: ObservableObject {
     @AppStorage("defaultAlertDesc") var defaultAlertDesc: String = "Open to log your reaction"
     @AppStorage("alertStartHr") var alertStartHr: Int = 7
     @AppStorage("alertEndHr") var alertEndHr: Int = 22
-    @AppStorage("daysBetweenAlerts") var daysBetweenAlerts = 2
+    @AppStorage("daysBetweenAlerts") var daysBetweenAlerts = 1
     
     func scheduleAlerts() -> [ExposureItem] {
         
