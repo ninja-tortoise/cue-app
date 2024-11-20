@@ -49,9 +49,10 @@ struct ExposureLogView: View {
                 }
                 
                 if items.filter({!$0.isEmpty}).count > 0 {
-                    Button("Export as PDF") {
-                        exportPDF()
-                    }.foregroundStyle(.blue)
+                    // PDF EXPORT
+                    ShareLink(item: exportPDF()) {
+                        Label("Save All as PDF", systemImage: "arrow.down.document")
+                    }
                 }
                 
                 Section("Upcoming Alerts") {
@@ -108,8 +109,70 @@ struct ExposureLogView: View {
         }
     }
     
-    private func exportPDF() {
+    private func exportPDF() -> URL {
         
+        let numFirstPageItems = 3
+        let numOtherPageItems = 4
+        
+        let exposures = items.filter({!$0.isEmpty}).sorted(by: { $0.timestamp < $1.timestamp})
+
+        // Configure output URL
+        let safeDateString = Date().formatted(date: .numeric, time: .omitted)
+                                .replacingOccurrences(of: "/", with: "-")
+        let url = URL.documentsDirectory.appending(path: "Exposure Results \(safeDateString).pdf")
+        
+        // set PDF size to A4 @ 200 DPI
+        var box = CGRect(x: 0, y: 0, width: 1660, height: 2340)
+
+        // Create the CGContext for PDF
+        guard let pdf = CGContext(url as CFURL, mediaBox: &box, nil) else {
+            return url
+        }
+        
+        // Calculate number of pages (3 items first page, 4 items per page after)
+        let numPages = Int(max(ceil(Double((exposures.count + 1)/numOtherPageItems)), 1))
+        
+        let _ = print(numPages)
+        
+        for idx in 0..<numPages {
+            
+            // Start a new PDF page
+            pdf.beginPDFPage(nil)
+            
+            let numItems = idx == 0 ? numFirstPageItems : numOtherPageItems
+            let range = (idx-1)*numItems+numFirstPageItems ..< min(idx*numItems+numFirstPageItems, exposures.count)
+            
+            let _ = print(numItems)
+            let _ = print(range)
+            
+            let renderer = ImageRenderer(content:
+                PDFPageView(
+                    exposureItems: Array(exposures[range]),
+                    pageNum: idx+1,
+                    includeHeading: idx == 0
+                ).environmentObject(appState)
+            )
+            
+            // Render the SwiftUI view data onto the page
+            renderer.render { size, context in
+                
+                // Place the view in the middle of pdf on x-axis
+                let xTranslation = box.size.width / 2 - size.width / 2
+                let yTranslation = box.size.height / 2 - size.height / 2
+                
+                pdf.translateBy(
+                    x: xTranslation,
+                    y: yTranslation
+                )
+                
+                context(pdf)
+            }
+
+            pdf.endPDFPage()
+        }
+        pdf.closePDF()
+
+        return url
     }
     
     private func deleteLoggedItem(offsets: IndexSet) {
