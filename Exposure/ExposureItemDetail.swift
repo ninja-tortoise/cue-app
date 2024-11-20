@@ -139,9 +139,7 @@ struct ExposureItemDetail: View {
         
         // Calculate number of pages (3 items first page, 4 items per page after)
         let numPages = Int(max(ceil(Double((exposures.count + 1)/numOtherPageItems)), 1))
-        
-        let _ = print(numPages)
-        
+                
         for idx in 0..<numPages {
             
             // Start a new PDF page
@@ -149,9 +147,6 @@ struct ExposureItemDetail: View {
             
             let numItems = idx == 0 ? numFirstPageItems : numOtherPageItems
             let range = (idx-1)*numItems+numFirstPageItems ..< min(idx*numItems+numFirstPageItems, exposures.count)
-            
-            let _ = print(numItems)
-            let _ = print(range)
             
             let renderer = ImageRenderer(content:
                 PDFPageView(
