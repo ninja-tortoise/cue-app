@@ -111,7 +111,6 @@ struct ExposureItemDetail: View {
             ShareLink(item: exportPDF()) {
                 Label("Save as PDF", systemImage: "arrow.down.document")
             }
-//            .foregroundStyle(.blue)
         }
         .navigationTitle("\(exposureItem.timestamp.formatted())")
     }
@@ -129,7 +128,7 @@ struct ExposureItemDetail: View {
         let url = URL.documentsDirectory.appending(path: "Exposure Results \(safeDateString).pdf")
         
         // set PDF size to A4 @ 200 DPI
-        var box = CGRect(x: 0, y: 0, width: 1654, height: 2229)
+        var box = CGRect(x: 0, y: 0, width: 1660, height: 2340)
 
         // Create the CGContext for PDF
         guard let pdf = CGContext(url as CFURL, mediaBox: &box, nil) else {
@@ -161,6 +160,16 @@ struct ExposureItemDetail: View {
             
             // Render the SwiftUI view data onto the page
             renderer.render { size, context in
+                
+                // Place the view in the middle of pdf on x-axis
+                let xTranslation = box.size.width / 2 - size.width / 2
+                let yTranslation = box.size.height / 2 - size.height / 2
+                
+                pdf.translateBy(
+                    x: xTranslation,
+                    y: yTranslation
+                )
+                
                 context(pdf)
             }
 

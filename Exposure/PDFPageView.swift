@@ -11,23 +11,26 @@ import Charts
 struct PDFPageView: View {
     @EnvironmentObject var appState: AppState
     var exposureItems: [ExposureItem]
+    var pageNum: Int = 1
     
-    var width: CGFloat = 1654
-    var height: CGFloat = 2229
+    // Default to A4 size
+    var width: CGFloat = 1560
+    var height: CGFloat = 2240
     var includeHeading = true
     
     var titleSize: CGFloat = 64
     var subtitleSize: CGFloat = 36
-    var headingSize: CGFloat = 32
-    var bodySize: CGFloat = 22
-    var dataPointSize: CGFloat = 22
+    var headingSize: CGFloat = 30
+    var bodySize: CGFloat = 24
+    var dataPointSize: CGFloat = 24
+    
     
     var body: some View {
         VStack(spacing: 0) {
             
             // Heading
             if includeHeading {
-                HStack {
+                HStack(alignment: .top) {
                     VStack(alignment: .leading) {
                         Text("Exposure Log")
                             .font(.system(size: titleSize))
@@ -59,7 +62,7 @@ struct PDFPageView: View {
                     }
                     Spacer()
                 }
-                .padding(.top, 20)
+                .padding(.top, 0)
                 .padding(.bottom, 80)
             }
             
@@ -79,6 +82,14 @@ struct PDFPageView: View {
             
             // Fill rest of the vertical space to top-align
             Spacer()
+            
+            HStack {
+                Text("Data collected and exported using the Exposure Buddy app for iOS.")
+//                    .italic()
+//                    .foregroundStyle(.gray)
+                Spacer()
+                Text("Page \(pageNum)")
+            }
         }
         .frame(width: width, height: height)
         .background(Color.white)
@@ -94,7 +105,7 @@ struct PDFPageView: View {
     
     PDFPageView(
         exposureItems: Array(ExposureItem.previews[0..<3])
-//        exposureItems: Array(ExposureItem.previews[3..<min(6, ExposureItem.previews.count)]),
+//        exposureItems: Array(ExposureItem.previews[0..<4]),
 //        includeHeading: false
     )
     .environmentObject(state)
@@ -104,14 +115,15 @@ struct SingleLogPDFView: View {
     @EnvironmentObject var appState: AppState
     var exposureItem: ExposureItem
     
-    // Establish default sizes
-    var width: CGFloat = 1654
-    var height: CGFloat = 2229
-    var titleSize: CGFloat = 70
+    // Default to A4 size
+    var width: CGFloat = 1560
+    var height: CGFloat = 2240
+    
+    var titleSize: CGFloat = 64
     var subtitleSize: CGFloat = 36
-    var headingSize: CGFloat = 48
-    var bodySize: CGFloat = 32
-    var dataPointSize: CGFloat = 26
+    var headingSize: CGFloat = 30
+    var bodySize: CGFloat = 24
+    var dataPointSize: CGFloat = 24
     
     var body: some View {
         VStack {
@@ -154,32 +166,35 @@ struct SingleLogPDFView: View {
                             }
                         }.padding(.bottom, 20)
                         
-                        Text("SUDS Levels")
-                            .font(.system(size: dataPointSize))
-                            .bold()
+                        HStack {
+                            Text("Start & End Alerts")
+                                .font(.system(size: bodySize))
+                                .bold()
+                            Spacer()
+                            Text("SUDS")
+                                .font(.system(size: bodySize))
+                                .bold()
+                        }
                         
                         // List all data points
-                        let startTime = exposureItem.distressDict.keys.sorted().first!
-                        ForEach(exposureItem.distressDict.keys.sorted(), id: \.self) { key in
+                        if let startTime = exposureItem.distressDict.keys.sorted().first {
+                            
                             HStack(alignment: .center) {
-                                let sudsVal = exposureItem.distressDict[key] ?? -1
-                                let sudsValStr = sudsVal == -1 ? "N/A" : "\(sudsVal)"
-                                let timeOfEntry = Date(timeIntervalSince1970: Double(key)!)
-                                var timeOfEntryStr = timeOfEntry.formatted(date: .omitted, time: .shortened)
                                 
-                                if startTime == key {
-                                    Circle()
-                                        .fill(.orange)
-                                        .frame(width: 12, height: 12)
-                                        .padding(.leading, 30)
-                                    let _ = timeOfEntryStr = timeOfEntryStr + "  (Initial Exposure)"
-                                } else {
-                                    Circle()
-                                        .fill(.teal)
-                                        .frame(width: 12, height: 12)
-                                        .padding(.leading, 30)
-                                    let _ = timeOfEntryStr = timeOfEntryStr + "  (Follow Up)"
-                                }
+                                let sudsVal = exposureItem.distressDict[startTime] ?? -1
+                                let sudsValStr = sudsVal == -1 ? "N/A" : "\(sudsVal)"
+                                let timeOfEntry = Date(timeIntervalSince1970: Double(startTime)!)
+                                let timeOfEntryStr = timeOfEntry.formatted(date: .omitted, time: .shortened)
+                                
+                                Circle()
+                                    .fill(.orange)
+                                    .frame(width: 12, height: 12)
+                                    .padding(.leading, 20)
+                                
+                                Text("Initial Exposure")
+                                    .font(.system(size: dataPointSize))
+                                    .foregroundStyle(.orange)
+                                    .bold()
                                 
                                 Text(timeOfEntryStr)
                                     .font(.system(size: dataPointSize))
@@ -189,9 +204,45 @@ struct SingleLogPDFView: View {
                                 
                                 Text(sudsValStr + " %")
                                     .font(.system(size: dataPointSize))
+                                    .foregroundStyle(.orange)
+                                    .bold()
+                                
                             }
                         }
-                        //                            .padding(.top, 20)
+                        
+                        if let endTime = exposureItem.distressDict.keys.sorted().last {
+                            
+                            HStack(alignment: .center) {
+                                
+                                let sudsVal = exposureItem.distressDict[endTime] ?? -1
+                                let sudsValStr = sudsVal == -1 ? "N/A" : "\(sudsVal)"
+                                let timeOfEntry = Date(timeIntervalSince1970: Double(endTime)!)
+                                let timeOfEntryStr = timeOfEntry.formatted(date: .omitted, time: .shortened)
+                                
+                                Circle()
+                                    .fill(.teal)
+                                    .frame(width: 12, height: 12)
+                                    .padding(.leading, 20)
+                                
+                                Text("Last Follow Up ")
+                                    .font(.system(size: dataPointSize))
+                                    .foregroundStyle(.teal)
+                                    .bold()
+                                
+                                Text(timeOfEntryStr)
+                                    .font(.system(size: dataPointSize))
+                                    .padding(.leading, 10)
+                                
+                                Spacer()
+                                
+                                Text(sudsValStr + " %")
+                                    .font(.system(size: dataPointSize))
+                                    .foregroundStyle(.teal)
+                                    .bold()
+                                
+                            }
+                        }
+                        
                     }
                     .padding(.trailing, 120)
                     .padding(.leading, 40)
@@ -203,7 +254,6 @@ struct SingleLogPDFView: View {
                         Text("Level of Distress Over Time")
                             .font(.system(size: dataPointSize))
                             .bold()
-                        //                                .foregroundStyle(.black.opacity(0.7))
                         DistressBarChart(item: exposureItem, barWidth: 30)
                             .frame(width: width/2)
                             .padding(.trailing, 40)
@@ -212,16 +262,16 @@ struct SingleLogPDFView: View {
                     .padding(.top, 30)
                 }
             }
-            .background(.gray.opacity(0.1))
+            .background(.gray.opacity(0.08))
             .cornerRadius(30)
-            .frame(height: height/5)
+            .frame(height: height/5.5)
             
-            HStack {
-                Text("Alert ID: \(exposureItem.uuid)")
-                    .bold()
-                    .foregroundStyle(.gray)
-                Spacer()
-            }.padding(.leading, 20)
+//            HStack {
+//                Text("Alert ID: \(exposureItem.uuid)")
+//                    .bold()
+//                    .foregroundStyle(.gray)
+//                Spacer()
+//            }.padding(.leading, 20)
         }
         .padding(.bottom, 50)
     }
