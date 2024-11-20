@@ -13,7 +13,8 @@ struct DistressBarChart: View {
     @StateObject var vm = ViewModel()
     var item: ExposureItem
     var barWidth: CGFloat = 15
-    var chartFont: Font = .title2
+    var chartFont: Font = .title3
+    var chartAxisLabels: Bool = true
     
     var body: some View {
 
@@ -112,14 +113,18 @@ struct DistressBarChart: View {
             }
         }
         .chartXAxisLabel(position: .bottom, alignment: .center) {
-            Text("Time of Day")
-                .font(chartFont)
+            if chartAxisLabels {
+                Text("Time of Day")
+                    .font(chartFont)
+            }
         }
         .chartYAxisLabel(position: .leading, alignment: .center) {
-            Text("Subjective Units of Distress (SUDS)")
-                .font(chartFont)
-                .rotationEffect(Angle(degrees: -180))
-                .padding(10)
+            if chartAxisLabels {
+                Text("Subjective Units of Distress (SUDS)")
+                    .font(chartFont)
+                    .rotationEffect(Angle(degrees: -180))
+                //                .padding(10)
+            }
         }
         .padding(.vertical, 10)
     }

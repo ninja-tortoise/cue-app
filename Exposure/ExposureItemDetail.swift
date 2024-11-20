@@ -26,8 +26,12 @@ struct ExposureItemDetail: View {
                     Text("Your Subjective Units of Distress (SUDS) level over time.")
                 }
                 .padding(.vertical, 4)
-                DistressBarChart(item: exposureItem)
-                    .frame(height: 240)
+                DistressBarChart(
+                    item: exposureItem,
+                    chartFont: .caption,
+                    chartAxisLabels: false
+                )
+                .frame(height: 240)
             }
             
             // MANUAL FOLLOW UP LOG
