@@ -111,15 +111,15 @@ struct ExposureLogView: View {
     
     private func exportPDF() -> URL {
         
-        let numFirstPageItems = 3
-        let numOtherPageItems = 4
+        let numFirstPageItems = 3.0
+        let numOtherPageItems = 4.0
         
         let exposures = items.filter({!$0.isEmpty}).sorted(by: { $0.timestamp < $1.timestamp})
 
         // Configure output URL
         let safeDateString = Date().formatted(date: .numeric, time: .omitted)
                                 .replacingOccurrences(of: "/", with: "-")
-        let url = URL.documentsDirectory.appending(path: "Exposure Results \(safeDateString).pdf")
+        let url = URL.documentsDirectory.appending(path: "All Exposure Results - \(safeDateString).pdf")
         
         // set PDF size to A4 @ 200 DPI
         var box = CGRect(x: 0, y: 0, width: 1660, height: 2340)
@@ -130,15 +130,15 @@ struct ExposureLogView: View {
         }
         
         // Calculate number of pages (3 items first page, 4 items per page after)
-        let numPages = Int(max(ceil(Double((exposures.count + 1)/numOtherPageItems)), 1))
+        let numPages = Int(max(ceil(Double(exposures.count + 1)/numOtherPageItems), 1))
                 
         for idx in 0..<numPages {
             
             // Start a new PDF page
             pdf.beginPDFPage(nil)
             
-            let numItems = idx == 0 ? numFirstPageItems : numOtherPageItems
-            let range = (idx-1)*numItems+numFirstPageItems ..< min(idx*numItems+numFirstPageItems, exposures.count)
+            let numItems = idx == 0 ? Int(numFirstPageItems) : Int(numOtherPageItems)
+            let range = (idx-1)*numItems+Int(numFirstPageItems) ..< min(idx*numItems+Int(numFirstPageItems), exposures.count)
             
             let renderer = ImageRenderer(content:
                 PDFPageView(
