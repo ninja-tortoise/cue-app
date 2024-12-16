@@ -84,6 +84,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         UserDefaults.standard.register(defaults: ["navItemSelected" : "default",
 //                                                  "currentExposureUUID" : "default-uuid-string",
 //                                                  "isFollowUp" : false,
+                                                  "freqIndex" : 13,
                                                   "numberOfFollowUps" : 5,
                                                   "followUpInterval" : 60,
                                                   "fearedOutcome" : "",
@@ -105,7 +106,9 @@ class AppState: ObservableObject {
     @Published var isExposureInputViewPresented = false
     @Published var currentExposureUUID = "default-uuid-string"
     @Published var isFollowUp: Bool = false
+    @Published var alertFrequencies: [Double] = [14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.33, 0.25, 0.2]
     
+    @AppStorage("freqIndex") var freqIndex: Int = 13
     @AppStorage("numberOfFollowUps") var numberOfFollowUps: Int = 5
     @AppStorage("followUpInterval") var followUpInterval: Int = 60
     
@@ -119,7 +122,7 @@ class AppState: ObservableObject {
     @AppStorage("defaultAlertDesc") var defaultAlertDesc: String = "Open to log your reaction"
     @AppStorage("alertStartHr") var alertStartHr: Int = 7
     @AppStorage("alertEndHr") var alertEndHr: Int = 22
-    @AppStorage("daysBetweenAlerts") var daysBetweenAlerts = 1
+    @AppStorage("daysBetweenAlerts") var daysBetweenAlerts: Double = 1.0
     
     func scheduleAlerts() -> [ExposureItem] {
         
@@ -133,53 +136,60 @@ class AppState: ObservableObject {
         UNUserNotificationCenter.current().setNotificationCategories([category])
         
         var newItems: [ExposureItem] = []
+
+        // One fortnight of alerts scheduled at once
+        let daysOfAlerts = Int(ceil(Double(14 / max(daysBetweenAlerts, 1)))) + 1
         
-        for i in 0..<10 {
+        for i in 0..<daysOfAlerts {
             
-            let content = UNMutableNotificationContent()
-            content.title = customAlertText ? customAlertTitle : defaultAlertTitle
-            content.subtitle = customAlertText ? customAlertDesc : defaultAlertDesc
-            content.sound = UNNotificationSound.default
-            content.categoryIdentifier = "exposureInput"
-            
-            let uuid = UUID()
-            content.userInfo = ["uuid": uuid.uuidString]
-            
-            let cal = Calendar.current
-            
-            let randSecondsRange = (alertEndHr - alertStartHr) * 60 * 60
-            let randomOffset = Int.random(in: -(randSecondsRange/2)..<(randSecondsRange/2))
-            var interval = daysBetweenAlerts * 24 * 60 * 60 * (i)
-            var startDate = cal.dateComponents([.year, .month, .day, .hour, .minute, .second], from: Date())
-            var testing = false
-            
-            #if DEBUG
-//            if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
-            if i == 0 {
-                interval = 10
-                testing = true
-            }
-//            }
-            #endif
-            
-            if i >= 0 && !testing {
-                let hourOffset = Double(alertEndHr - alertStartHr)/2.0 + Double(alertStartHr)
-                startDate.hour = Int(floor(hourOffset))
-                startDate.minute = Int(hourOffset.truncatingRemainder(dividingBy: 1) * 60)
-                interval += randomOffset
-            }
-            
-            if let startDate = cal.date(from: startDate), let fireDate = cal.date(byAdding: .second, value: interval, to: startDate) {
+            let alertsPerDay = max(Int(floor(1/daysBetweenAlerts)), 1)
+            for j in 0..<alertsPerDay {
                 
-                let fireDateComponents = cal.dateComponents([.year, .month, .day, .hour, .minute, .second], from: fireDate)
-                let trigger = UNCalendarNotificationTrigger(dateMatching: fireDateComponents, repeats: false)
-                let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-                  
-                UNUserNotificationCenter.current().add(request)
+                let content = UNMutableNotificationContent()
+                content.title = customAlertText ? customAlertTitle : defaultAlertTitle
+                content.subtitle = customAlertText ? customAlertDesc : defaultAlertDesc
+                content.sound = UNNotificationSound.default
+                content.categoryIdentifier = "exposureInput"
                 
-                let newItem = ExposureItem(uuid: uuid, at: fireDate)
-                newItems.append(newItem)
-                print("NEW EXPOSURE: \(uuid) | \(fireDate.formatted()) | \(i)")
+                let uuid = UUID()
+                content.userInfo = ["uuid": uuid.uuidString]
+                
+                let cal = Calendar.current
+                
+                let randSecondsRange = (alertEndHr - alertStartHr) * 60 * 60
+                let randomOffset = Int.random(in: -(randSecondsRange/2)..<(randSecondsRange/2))
+                var interval = Int(ceil(daysBetweenAlerts)) * 24 * 60 * 60 * (i)
+                var startDate = cal.dateComponents([.year, .month, .day, .hour, .minute, .second], from: Date())
+                var testing = false
+                
+                #if DEBUG
+                //            if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
+                if i == 0 {
+                    interval = 10
+                    testing = true
+                }
+                //            }
+                #endif
+                
+                if i >= 0 && !testing {
+                    let hourOffset = Double(alertEndHr - alertStartHr)/2.0 + Double(alertStartHr)
+                    startDate.hour = Int(floor(hourOffset))
+                    startDate.minute = Int(hourOffset.truncatingRemainder(dividingBy: 1) * 60)
+                    interval += randomOffset
+                }
+                
+                if let startDate = cal.date(from: startDate), let fireDate = cal.date(byAdding: .second, value: interval, to: startDate) {
+                    
+                    let fireDateComponents = cal.dateComponents([.year, .month, .day, .hour, .minute, .second], from: fireDate)
+                    let trigger = UNCalendarNotificationTrigger(dateMatching: fireDateComponents, repeats: false)
+                    let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+                    
+                    UNUserNotificationCenter.current().add(request)
+                    
+                    let newItem = ExposureItem(uuid: uuid, at: fireDate)
+                    newItems.append(newItem)
+                    print("NEW EXPOSURE: \(uuid) | \(fireDate.formatted()) | Day \(i+1), alert \(j+1)")
+                }
             }
         }
         

@@ -57,7 +57,7 @@ struct ExposureLogView: View {
                 
                 Section("Upcoming Alerts") {
                     if items.filter({$0.isEmpty}).count == 0 {
-                        Button("Tap to schedule future alerts") {
+                        Button("Schedule future alerts") {
                             withAnimation {
                                 scheduleAlerts()
                             }
@@ -66,14 +66,22 @@ struct ExposureLogView: View {
                         ForEach(items.filter({$0.isEmpty}).sorted(by: { $0.timestamp < $1.timestamp })) { item in
                             PendingAlertView(item: item)
                         }.onDelete(perform: deleteUpcomingItem)
+                        
+                        if items.filter({$0.isEmpty}).count <= 2 && items.filter({!$0.isEmpty}).count > 0 {
+                            Button("Extend alerts for another 14 days") {
+                                scheduleAlerts()
+                            }
+                        }
                     }
                 }
                 
                 if items.filter({$0.isEmpty}).count > 0 {
+                    
                     Button("Cancel All Upcoming Alerts") {
                         removeAlerts()
                     }.foregroundStyle(.red)
                 }
+                
                 
             }
             .navigationTitle("History")
@@ -84,9 +92,11 @@ struct ExposureLogView: View {
         requestPermission()
         removeAlerts()
         
-        let newItems = appState.scheduleAlerts()
-        for item in newItems {
-            modelContext.insert(item)
+        withAnimation {
+            let newItems = appState.scheduleAlerts()
+            for item in newItems {
+                modelContext.insert(item)
+            }
         }
     }
     

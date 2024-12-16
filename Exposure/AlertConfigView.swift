@@ -24,7 +24,7 @@ struct AlertConfigView: View {
                         Image(.icon)
                             .resizable()
                             .frame(width: 40, height: 40, alignment: .bottom)
-                            .clipShape(RoundedRectangle(cornerRadius: 15))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
                             .padding(.vertical, 8)
                         VStack {
                             Text("\(appState.customAlertText ? appState.customAlertTitle : appState.defaultAlertTitle)\n\(appState.customAlertText ? appState.customAlertDesc : appState.defaultAlertDesc)")
@@ -102,11 +102,17 @@ struct AlertConfigView: View {
                         scheduleAlerts()
                     }
                     
-                    Stepper("Send once every \(appState.daysBetweenAlerts == 1 ? "day" : "\(appState.daysBetweenAlerts) days")",
-                            value: $appState.daysBetweenAlerts, in: 1...14)
-                        .onChange(of: appState.daysBetweenAlerts) {
+                    let frequencyPerDayString: String = appState.daysBetweenAlerts >= 1 ? "once" : "\(Int(floor(1/appState.daysBetweenAlerts))) times"
+                    let frequencyDaysString: String = appState.daysBetweenAlerts > 1 ? "\(Int(appState.daysBetweenAlerts)) days" : "day"
+                    
+                    Stepper("Send \(frequencyPerDayString) every \(frequencyDaysString)",
+                            value: $appState.freqIndex, in: 0...appState.alertFrequencies.count-1)
+                    .onChange(of: appState.freqIndex) {
+                        if appState.freqIndex < appState.alertFrequencies.count {
+                            appState.daysBetweenAlerts = appState.alertFrequencies[appState.freqIndex]
                             scheduleAlerts()
                         }
+                    }
                     
                 } header: {
                     Text("Alert Settings")

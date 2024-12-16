@@ -125,9 +125,9 @@ struct ExposureItemDetail: View {
         let exposures = [exposureItem]
 
         // Configure output URL
-        let safeDateString = Date().formatted(date: .numeric, time: .omitted)
+        let safeDateString = exposureItem.timestamp.formatted(date: .numeric, time: .omitted)
                                 .replacingOccurrences(of: "/", with: "-")
-        let url = URL.documentsDirectory.appending(path: "Exposure Results \(safeDateString).pdf")
+        let url = URL.documentsDirectory.appending(path: "Exposure Results - \(safeDateString).pdf")
         
         // set PDF size to A4 @ 200 DPI
         var box = CGRect(x: 0, y: 0, width: 1660, height: 2340)
