@@ -122,7 +122,7 @@ struct ExposureLogView: View {
     private func exportPDF() -> URL {
         
         let numFirstPageItems = 3.0
-        let numOtherPageItems = 4.0
+        let numOtherPageItems = 3.0
         
         let exposures = items.filter({!$0.isEmpty}).sorted(by: { $0.timestamp < $1.timestamp})
 

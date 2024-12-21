@@ -47,6 +47,8 @@ extension ExposureItem {
                     "\(timestamp + 4*Int.random(in: 60 ... 70))": Int.random(in: 20 ... 60),
                     "\(timestamp + 5*Int.random(in: 60 ... 70))": Int.random(in:  0 ... 40),
                 ]
+                let randomNotes = ["", "", "Something is going on", "", "", "I feel better now", "Lorem ipsum", "This is fantastic", "This is a much longer note that might be typed in if someone wants to go into a lot of detail.", "", "I watched a movie last night", "", "I went to the gym", "I went to the grocery store"]
+                expItem.notes = Array(Set(randomNotes).prefix(6))
                 
                 expItems.append(expItem)
             }

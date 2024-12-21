@@ -148,7 +148,7 @@ struct SingleLogPDFView: View {
                                 Text("Likelihood:")
                                     .font(.system(size: bodySize))
                                     .bold()
-                                Text("Follow Up Interval:")
+                                Text("Check In Interval:")
                                     .font(.system(size: bodySize))
                                     .bold()
                             }
@@ -166,82 +166,94 @@ struct SingleLogPDFView: View {
                             }
                         }.padding(.bottom, 20)
                         
+//                        HStack {
+//                            Text("Start & End Alerts")
+//                                .font(.system(size: bodySize))
+//                                .bold()
+//                            Spacer()
+//                            Text("SUDS")
+//                                .font(.system(size: bodySize))
+//                                .bold()
+//                        }
+//                        
+//                        // List all data points
+//                        if let startTime = exposureItem.distressDict.keys.sorted().first {
+//                            
+//                            HStack(alignment: .center) {
+//                                
+//                                let sudsVal = exposureItem.distressDict[startTime] ?? -1
+//                                let sudsValStr = sudsVal == -1 ? "N/A" : "\(sudsVal)"
+//                                let timeOfEntry = Date(timeIntervalSince1970: Double(startTime)!)
+//                                let timeOfEntryStr = timeOfEntry.formatted(date: .omitted, time: .shortened)
+//                                
+//                                Circle()
+//                                    .fill(.orange)
+//                                    .frame(width: 12, height: 12)
+//                                    .padding(.leading, 20)
+//                                
+//                                Text("Initial Exposure")
+//                                    .font(.system(size: dataPointSize))
+//                                    .foregroundStyle(.orange)
+//                                    .bold()
+//                                
+//                                Text(timeOfEntryStr)
+//                                    .font(.system(size: dataPointSize))
+//                                    .padding(.leading, 10)
+//                                
+//                                Spacer()
+//                                
+//                                Text(sudsValStr + " %")
+//                                    .font(.system(size: dataPointSize))
+//                                    .foregroundStyle(.orange)
+//                                    .bold()
+//                                
+//                            }
+//                        }
+//                        
+//                        if let endTime = exposureItem.distressDict.keys.sorted().last {
+//                            
+//                            HStack(alignment: .center) {
+//                                
+//                                let sudsVal = exposureItem.distressDict[endTime] ?? -1
+//                                let sudsValStr = sudsVal == -1 ? "N/A" : "\(sudsVal)"
+//                                let timeOfEntry = Date(timeIntervalSince1970: Double(endTime)!)
+//                                let timeOfEntryStr = timeOfEntry.formatted(date: .omitted, time: .shortened)
+//                                
+//                                Circle()
+//                                    .fill(.teal)
+//                                    .frame(width: 12, height: 12)
+//                                    .padding(.leading, 20)
+//                                
+//                                Text("Last Check In ")
+//                                    .font(.system(size: dataPointSize))
+//                                    .foregroundStyle(.teal)
+//                                    .bold()
+//                                
+//                                Text(timeOfEntryStr)
+//                                    .font(.system(size: dataPointSize))
+//                                    .padding(.leading, 10)
+//                                
+//                                Spacer()
+//                                
+//                                Text(sudsValStr + " %")
+//                                    .font(.system(size: dataPointSize))
+//                                    .foregroundStyle(.teal)
+//                                    .bold()
+//                                
+//                            }
+//                        }
+                        
+                        
+                        // NOTES
                         HStack {
-                            Text("Start & End Alerts")
+                            Text("Observations")
                                 .font(.system(size: bodySize))
                                 .bold()
-                            Spacer()
-                            Text("SUDS")
-                                .font(.system(size: bodySize))
-                                .bold()
-                        }
+                        }.padding(.top, 10)
                         
-                        // List all data points
-                        if let startTime = exposureItem.distressDict.keys.sorted().first {
-                            
-                            HStack(alignment: .center) {
-                                
-                                let sudsVal = exposureItem.distressDict[startTime] ?? -1
-                                let sudsValStr = sudsVal == -1 ? "N/A" : "\(sudsVal)"
-                                let timeOfEntry = Date(timeIntervalSince1970: Double(startTime)!)
-                                let timeOfEntryStr = timeOfEntry.formatted(date: .omitted, time: .shortened)
-                                
-                                Circle()
-                                    .fill(.orange)
-                                    .frame(width: 12, height: 12)
-                                    .padding(.leading, 20)
-                                
-                                Text("Initial Exposure")
-                                    .font(.system(size: dataPointSize))
-                                    .foregroundStyle(.orange)
-                                    .bold()
-                                
-                                Text(timeOfEntryStr)
-                                    .font(.system(size: dataPointSize))
-                                    .padding(.leading, 10)
-                                
-                                Spacer()
-                                
-                                Text(sudsValStr + " %")
-                                    .font(.system(size: dataPointSize))
-                                    .foregroundStyle(.orange)
-                                    .bold()
-                                
-                            }
-                        }
                         
-                        if let endTime = exposureItem.distressDict.keys.sorted().last {
-                            
-                            HStack(alignment: .center) {
-                                
-                                let sudsVal = exposureItem.distressDict[endTime] ?? -1
-                                let sudsValStr = sudsVal == -1 ? "N/A" : "\(sudsVal)"
-                                let timeOfEntry = Date(timeIntervalSince1970: Double(endTime)!)
-                                let timeOfEntryStr = timeOfEntry.formatted(date: .omitted, time: .shortened)
-                                
-                                Circle()
-                                    .fill(.teal)
-                                    .frame(width: 12, height: 12)
-                                    .padding(.leading, 20)
-                                
-                                Text("Last Follow Up ")
-                                    .font(.system(size: dataPointSize))
-                                    .foregroundStyle(.teal)
-                                    .bold()
-                                
-                                Text(timeOfEntryStr)
-                                    .font(.system(size: dataPointSize))
-                                    .padding(.leading, 10)
-                                
-                                Spacer()
-                                
-                                Text(sudsValStr + " %")
-                                    .font(.system(size: dataPointSize))
-                                    .foregroundStyle(.teal)
-                                    .bold()
-                                
-                            }
-                        }
+                        ObservationsView(exposureItem: exposureItem,
+                                         dataPointSize: dataPointSize)
                         
                     }
                     .padding(.trailing, 120)
@@ -264,7 +276,7 @@ struct SingleLogPDFView: View {
             }
             .background(.gray.opacity(0.08))
             .cornerRadius(30)
-            .frame(height: height/5.5)
+            .frame(height: height/4.4)
             
 //            HStack {
 //                Text("Alert ID: \(exposureItem.uuid)")
@@ -274,5 +286,67 @@ struct SingleLogPDFView: View {
 //            }.padding(.leading, 20)
         }
         .padding(.bottom, 50)
+    }
+}
+
+struct ObservationsView: View {
+    @EnvironmentObject var appState: AppState
+    var exposureItem: ExposureItem
+    var dataPointSize: CGFloat = 24
+    
+    var body: some View {
+        VStack(alignment: .center, spacing: 8) {
+            
+            // List all data points
+            let sortedTimes = Array(exposureItem.distressDict.keys.sorted())
+            let sortedDictValues = exposureItem.distressDict.sorted(by: <)
+            
+            let dateFormatter = DateFormatter()
+            let _ = dateFormatter.dateFormat = "hh:mm a"
+            
+            ForEach(Array(exposureItem.notes.enumerated()), id: \.element) { index, note in
+                
+                let sudsVal = sortedDictValues[index].value
+                let sudsValStr = sudsVal == -1 ? "N/A" : "\(sudsVal)"
+                
+                HStack(alignment: .top) {
+                    
+                    // SUDS
+                    HStack{
+                        Text("\(sudsValStr)%")
+    //                        .foregroundStyle(.secondary)
+    //                        .font(.system(size: dataPointSize))
+                            .foregroundStyle(index == 0 ? .orange : .teal)
+                            .bold()
+                        Spacer()
+                    }
+                    .frame(minWidth: 60, maxWidth: 60)
+                    
+                    // TIME
+                    HStack{
+                        Text("\(dateFormatter.string(from: Date(timeIntervalSince1970: Double(sortedTimes[index])!)))")
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                    }
+                    .frame(minWidth: 86, maxWidth: 86)
+                    
+                                    
+                    // NOTES
+                    HStack{
+                        if note.isEmpty {
+                            Text("-")
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Text(note)
+                                .lineLimit(5)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        Spacer()
+                    }
+                    
+                    Spacer()
+                }
+            }
+        }
     }
 }
