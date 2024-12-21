@@ -18,7 +18,7 @@ struct ExposureApp: App {
         let schema = Schema([
             ExposureItem.self,
         ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
@@ -89,7 +89,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
                                                   "followUpInterval" : 60,
                                                   "fearedOutcome" : "",
                                                   "postAlertReminder" : "",
-                                                  "smartCheckIn" : false,
+                                                  "smartCheckIn" : true,
                                                   "customAlertText" : false,
                                                   "customAlertTitle" : "You're about to die!",
                                                   "customAlertDesc" : "What are your final thoughts?",
@@ -116,7 +116,7 @@ class AppState: ObservableObject {
     @AppStorage("fearedOutcome") var fearedOutcome: String = ""
     @AppStorage("postAlertReminder") var postAlertReminder: String = ""
     
-    @AppStorage("smartCheckIn") var smartCheckIn: Bool = false
+    @AppStorage("smartCheckIn") var smartCheckIn: Bool = true
     @AppStorage("customAlertText") var customAlertText: Bool = false
     @AppStorage("customAlertTitle") var customAlertTitle: String = "You're about to die!"
     @AppStorage("customAlertDesc") var customAlertDesc: String = "What are your final thoughts?"

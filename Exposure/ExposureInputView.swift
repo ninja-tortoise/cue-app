@@ -138,7 +138,14 @@ struct ExposureInputView: View {
         }
     }
     
+    private func removeAlerts() {
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+        UNUserNotificationCenter.current().removeAllDeliveredNotifications()
+    }
+    
     private func scheduleFollowUps(exposureItem: ExposureItem) {
+        
+        removeAlerts()
         
         let category = UNNotificationCategory(
             identifier: "exposureInput",
@@ -150,8 +157,24 @@ struct ExposureInputView: View {
         UNUserNotificationCenter.current().setNotificationCategories([category])
         
         let interval = appState.followUpInterval
+        var smartStop = false
         
-        if exposureItem.distressDict.keys.count <= appState.numberOfFollowUps {
+        if appState.smartCheckIn {
+            let sortedTimes = exposureItem.distressDict.keys.sorted(by: <)
+            if let startTime = sortedTimes.first, let lastTime = sortedTimes.last {
+                let firstSUDS = exposureItem.distressDict[startTime] ?? -1
+                let latestSUDS = exposureItem.distressDict[lastTime] ?? -1
+                
+                print(firstSUDS, latestSUDS, latestSUDS <= firstSUDS/2)
+                
+                if latestSUDS <= firstSUDS/2 {
+                    smartStop = true
+                }
+            }
+            
+        }
+            
+        if !smartStop && exposureItem.distressDict.keys.count <= appState.numberOfFollowUps {
             
             let content = UNMutableNotificationContent()
             let cal = Calendar.current

@@ -110,8 +110,10 @@ struct ExposureItemDetail: View {
             }
             
             // NOTES
-            Section("Observations") {
-                ListOfNotes(exposureItem: exposureItem)
+            if !exposureItem.notes.isEmpty && !exposureItem.notes.joined().isEmpty {
+                Section("Observations") {
+                    ListOfNotes(exposureItem: exposureItem)
+                }
             }
             
             // PDF EXPORT
@@ -197,13 +199,12 @@ struct ListOfNotes: View {
     var body: some View {
         let _ = dateFormatter.dateFormat = "hh:mm a"
         ForEach(Array(exposureItem.notes.enumerated()), id: \.element) { index, note in
-            if !note.isEmpty {
-                HStack {
-                    Text("\(dateFormatter.string(from: Date(timeIntervalSince1970: Double(Array(exposureItem.distressDict.keys.sorted(by: <))[index])!)))")
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Text(note)
-                }
+            HStack {
+                let _ = print(index, note)
+                Text("\(dateFormatter.string(from: Date(timeIntervalSince1970: Double(Array(exposureItem.distressDict.keys.sorted(by: <))[index])!)))")
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text(note.isEmpty ? "N/A" : note)
             }
         }
     }
