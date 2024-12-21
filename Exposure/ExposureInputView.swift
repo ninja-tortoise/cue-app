@@ -16,9 +16,27 @@ struct ExposureInputView: View {
     @State private var likelihood: Int = 0
     @State private var severity: Int = 0
     @State private var currentDistress: Int = 0
-    @State private var answer1: String = ""
+    @State private var note: String = ""
     @State private var answer2: String = ""
     @State private var showingAlert = false
+    
+    func getAnxietyLevelForSUD(level: Int) -> String {
+        if 0...10 ~= level {
+            return "No Anxiety"
+        } else if 10...30 ~= level {
+            return "Low Anxiety"
+        } else if 30...50 ~= level {
+            return "Moderate Anxiety"
+        } else if 50...70 ~= level {
+            return "Significant Anxiety"
+        } else if 70...90 ~= level {
+            return "High Anxiety"
+        } else if 90...100 ~= level {
+            return "Extreme Anxiety"
+        }
+        
+        return "No Anxiety"
+    }
     
     var body: some View {
         NavigationView {
@@ -47,10 +65,30 @@ struct ExposureInputView: View {
                 }
                 
                 Section() {
-                    Text("Please record your current Subjective Units of Distress (SUDS) level.\n\n0 = no anxiety\n50 = significant anxiety\n100 = extreme anxiety\n\nCurrent Distress: \(currentDistress)")
-                    Slider(value: Binding(get: { Double(currentDistress) }, set: { currentDistress = Int($0) }), in: 0...100, step: 5) {
-                        Text("Level of Distress")
-                    }.padding(.vertical, 8)
+                    Text("Please record your current Subjective Units of Distress (SUDS) level.")
+                    
+                    VStack {
+                        Slider(value: Binding(get: { Double(currentDistress) }, set: { currentDistress = Int($0) }),
+                               in: 0...100,
+                               step: 5,
+                               minimumValueLabel: Text("0"),
+                               maximumValueLabel: Text("100")
+                        ) {
+                            Text("Level of Distress")
+                        } .padding(.vertical, 8)
+                        
+                        HStack {
+                            Text("\(currentDistress)")
+                                .bold()
+                            Text("(\(getAnxietyLevelForSUD(level: currentDistress)))")
+                        }
+                    }
+                    
+                }
+                
+                Section() {
+                    Text("Do you have any observations or notes to add to this entry?")
+                    TextField("Enter some thoughts here", text: $note)
                 }
                 
                 Button("Submit") {
@@ -66,6 +104,9 @@ struct ExposureInputView: View {
                             exposureItem.severity = severity
                             exposureItem.timestamp = Date()
                         }
+                        
+                        // Save any notes made
+                        exposureItem.notes.append(note)
                         
                         // Save distress level
                         exposureItem.distressDict["\(Int(Date().timeIntervalSince1970))"] = currentDistress
@@ -115,7 +156,7 @@ struct ExposureInputView: View {
             let content = UNMutableNotificationContent()
             let cal = Calendar.current
             
-            content.title = "Exposure Follow Up"
+            content.title = "Exposure Check In"
             content.subtitle = "How are you feeling?"
             content.sound = UNNotificationSound.default
             content.categoryIdentifier = "exposureInput"

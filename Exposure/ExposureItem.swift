@@ -16,7 +16,7 @@ final class ExposureItem {
     var timestamp: Date
     
     var isEmpty: Bool = true
-    var answer1: String = ""
+    var notes: [String] = []
     var answer2: String = ""
     var likelihood: Int = 0
     var severity: Int = 0

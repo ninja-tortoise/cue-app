@@ -122,9 +122,9 @@ struct AlertConfigView: View {
                 
                 Section {
                     HStack {
-                        Text("Follow up after")
+                        Text("Check In after")
                         Spacer(minLength: 25)
-                        Picker("Follow up after", selection: $appState.followUpInterval) {
+                        Picker("Check In after", selection: $appState.followUpInterval) {
                             Text("30s").tag(30)
                             Text("1m").tag(60)
                             Text("5m").tag(300)
@@ -133,11 +133,31 @@ struct AlertConfigView: View {
                         .pickerStyle(.segmented)
                     }
                     
-                    Stepper("Follow up \(appState.numberOfFollowUps) times", value: $appState.numberOfFollowUps, in: 0...20)
+                    if !appState.smartCheckIn {
+                        Stepper("Check In \(appState.numberOfFollowUps) times", value: $appState.numberOfFollowUps, in: 0...20)
+                    }
+                    
+                    HStack {
+                        VStack {
+                            HStack {
+                                Text("Smart Check In")
+                                Spacer()
+                            }
+                            HStack {
+                                Text("Stops checking in once SUDS falls below half of initial level.")
+                                    .font(.caption2)
+                                Spacer()
+                            }
+                        }
+                        withAnimation {
+                            Toggle("", isOn: $appState.smartCheckIn)
+                                .labelsHidden()
+                        }
+                    }
                 } header: {
-                    Text("Follow Ups")
+                    Text("Checking In")
                 } footer: {
-                    Text("Follow up alerts ask you to re-evaluate your distress level after exposure. This is tracked over time and displayed for review.")
+                    Text("Check In alerts ask you to re-evaluate your distress level after exposure. This is tracked over time and displayed for review.")
                 }
             }
             .navigationTitle("Configure Alerts")

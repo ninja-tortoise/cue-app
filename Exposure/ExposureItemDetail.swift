@@ -52,7 +52,7 @@ struct ExposureItemDetail: View {
             }
             
             // ITEM DETAILS
-            Section("ID: \(exposureItem.uuid)") {
+            Section("Details") {
                 
                 // SEVERITY
                 HStack {
@@ -98,7 +98,7 @@ struct ExposureItemDetail: View {
                 HStack {
                     Text("Follow Ups")
                     Spacer()
-                    Text("\(exposureItem.distressDict.count-1)/\(appState.numberOfFollowUps)")
+                    Text("\(exposureItem.distressDict.count-1)")
                 }
                 
                 // DATE
@@ -107,6 +107,11 @@ struct ExposureItemDetail: View {
                     Spacer()
                     Text("\(exposureItem.timestamp.formatted())")
                 }
+            }
+            
+            // NOTES
+            Section("Observations") {
+                ListOfNotes(exposureItem: exposureItem)
             }
             
             // PDF EXPORT
@@ -181,4 +186,25 @@ struct ExposureItemDetail: View {
 #Preview {
     ExposureItemDetail(exposureItem: ExposureItem.preview)
         .environmentObject(AppState())
+}
+
+struct ListOfNotes: View {
+    @EnvironmentObject var appState: AppState
+    var exposureItem: ExposureItem
+    
+    let dateFormatter = DateFormatter()
+    
+    var body: some View {
+        let _ = dateFormatter.dateFormat = "hh:mm a"
+        ForEach(Array(exposureItem.notes.enumerated()), id: \.element) { index, note in
+            if !note.isEmpty {
+                HStack {
+                    Text("\(dateFormatter.string(from: Date(timeIntervalSince1970: Double(Array(exposureItem.distressDict.keys.sorted(by: <))[index])!)))")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text(note)
+                }
+            }
+        }
+    }
 }

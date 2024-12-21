@@ -73,6 +73,7 @@ extension ExposureItem {
 //            "1728643425": 5,
 //            "1728643825": 25,
         ]
+        expItem.notes = ["", "", "something is going on", "", "", "i feel better now"]
         return expItem
     }
 }
