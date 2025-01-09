@@ -5,6 +5,7 @@
 //  Created by Toby on 3/10/2024.
 //
 
+import TipKit
 import SwiftUI
 import SwiftData
 import UserNotifications
@@ -13,11 +14,12 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var appState: AppState
     @Query private var items: [ExposureItem]
+    @AppStorage("isOnboarding") var isOnboarding: Bool = true
 
     var body: some View {
         TabView {
             
-            Tab("Your Fears", systemImage: "pencil.line") {
+            Tab("Your Fear", systemImage: "pencil.line") {
                 GeneralConfigView()
             }
             
@@ -32,6 +34,9 @@ struct ContentView: View {
         }
         .sheet(isPresented: $appState.isExposureInputViewPresented) {
             ExposureInputView()
+        }
+        .sheet(isPresented: $isOnboarding) {
+            WelcomeView()
         }
         
     }
