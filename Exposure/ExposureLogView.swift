@@ -5,6 +5,7 @@
 //  Created by Toby on 1/11/2024.
 //
 
+import TipKit
 import SwiftUI
 import SwiftData
 import UserNotifications
@@ -14,17 +15,23 @@ struct ExposureLogView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var appState: AppState
     @Query var items: [ExposureItem]
+    
+    let historyInitialTip = HistoryPageInitialTip()
 
     var body: some View {
         NavigationView {
             List {
                 
-                if items.filter({!$0.isEmpty}).count == 0 {
-                    Section("Welcome") {
-                        Text("You will receive random notifications that are supposed to simulate an exposure event. When you open the notification, you'll be taken into the app to record your distress level. Those results will be displayed here.")
-                            .disabled(true)
-                    }
-                }
+                TipView(historyInitialTip)
+                    .padding(-10)
+                    .tipBackground(.clear)
+                
+//                if items.filter({!$0.isEmpty}).count == 0 {
+//                    Section() {
+//                        Text("You will receive random notifications that are supposed to simulate an exposure event. When you open the notification, you'll be taken into the app to record your distress level. Those results will be displayed here.")
+//                            .disabled(true)
+//                    }
+//                }
                 
                 Section("Past logs") {
                     if items.filter({!$0.isEmpty}).count == 0 {
@@ -38,7 +45,7 @@ struct ExposureLogView: View {
                             VStack {
                                 HStack {
                                     Text(item.timestamp, format: Date.FormatStyle(date: .abbreviated, time: .shortened))
-
+                                    
                                     Spacer()
                                     
                                     MinimalBarChart(item: item)

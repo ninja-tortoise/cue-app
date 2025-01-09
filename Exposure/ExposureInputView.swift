@@ -88,7 +88,7 @@ struct ExposureInputView: View {
                 
                 Section() {
                     Text("Do you have any observations or notes to add to this entry?")
-                    TextField("Enter some thoughts here", text: $note)
+                    TextField("Enter your thoughts here", text: $note)
                 }
                 
                 Button("Submit") {

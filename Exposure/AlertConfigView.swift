@@ -5,6 +5,7 @@
 //  Created by Toby on 1/11/2024.
 //
 
+import TipKit
 import SwiftUI
 import SwiftData
 import UserNotifications
@@ -13,17 +14,23 @@ struct AlertConfigView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var appState: AppState
     @Query private var items: [ExposureItem]
+    
+    let configInitialTip = ConfigPageInitialTip()
 
     var body: some View {
         NavigationView {
             Form {
                 
-                // NOTIFICATION PREVIEW
+                TipView(configInitialTip)
+                    .padding(-10)
+                    .tipBackground(.clear)
+                
+                // MARK: NOTIFICATION PREVIEW
                 Section("Alert Preview") {
                     HStack {
                         Image(.icon)
                             .resizable()
-                            .frame(width: 40, height: 40, alignment: .bottom)
+                            .frame(width: 50, height: 50, alignment: .bottom)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                             .padding(.vertical, 8)
                         VStack {
@@ -37,7 +44,7 @@ struct AlertConfigView: View {
                     LinearGradient(gradient: Gradient(colors: [.white]), startPoint: .top, endPoint: .bottom)
                 ).disabled(true)
                 
-                // ALERT TIMES
+                // MARK: ALERT TIMES
                 Section {
                      
                     withAnimation {
@@ -120,6 +127,7 @@ struct AlertConfigView: View {
                     Text("This alert will randomly appear during the specified hours, simulating the feared outcome.")
                 }
                 
+                // MARK: CHECK INS
                 Section {
                     HStack {
                         Text("Check In after")
@@ -159,6 +167,16 @@ struct AlertConfigView: View {
                 } footer: {
                     Text("Check In alerts ask you to re-evaluate your distress level after exposure. This is tracked over time and displayed for review.")
                 }
+                
+                // MARK: App About
+                // TODO: Enable about page
+//                Section {
+//                    NavigationLink {
+//                        AboutView()
+//                    } label: {
+//                        Text("About Cue")
+//                    }
+//                }
             }
             .navigationTitle("Configure Alerts")
         }

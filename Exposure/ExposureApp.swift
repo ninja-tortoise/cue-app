@@ -165,12 +165,10 @@ class AppState: ObservableObject {
                 var testing = false
                 
                 #if DEBUG
-                //            if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
                 if i == 0 {
                     interval = 10
                     testing = true
                 }
-                //            }
                 #endif
                 
                 if i >= 0 && !testing {

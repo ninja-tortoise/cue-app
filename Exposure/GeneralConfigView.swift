@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TipKit
 import SwiftData
 import UserNotifications
 
@@ -14,30 +15,34 @@ struct GeneralConfigView: View {
     @EnvironmentObject var appState: AppState
     @Query private var items: [ExposureItem]
     @FocusState private var isFocused: Bool
+    
+    let fearPageInitialTip = FearPageInitialTip()
 
     var body: some View {
         NavigationView {
             List {
                 
-                Section {
-                    Text("You can personalise your reports & logging pages by including your feared outcome. Post-exposure messages can provide helpful thoughts during exposure.")
-                        .disabled(true)
-                }
+                TipView(fearPageInitialTip)
+                    .padding(-10)
+                    .tipBackground(.clear)
                 
                 // FEARED OUTCOME
                 Section {
-                    TextField("Example: sudden death", text: $appState.fearedOutcome)
+                    TextField("Example: Sudden death", text: $appState.fearedOutcome)
                         .textInputAutocapitalization(.never)
                         .disableAutocorrection(true)
+//                        .onChange(of: appState.fearedOutcome) {
+//                                fearPageInitialTip.invalidate(reason: .actionPerformed)
+//                        }
                 } header: {
                     Text("Feared Outcome")
                 } footer: {
-                    Text("What are you afraid will happen? Try to keep it short and to the point.")
+                    Text("What thought or outcome makes you anxious? Try to be specific but brief.")
                 }
-
+                
                 // REMINDER
                 Section {
-                    TextField("Example: Thinking back on your life, what are your proudest moments?", text: $appState.postAlertReminder, axis: .vertical)
+                    TextField("Example: I've handled this before and I can handle it now!", text: $appState.postAlertReminder, axis: .vertical)
                         .textInputAutocapitalization(.never)
                         .disableAutocorrection(true)
                         .lineLimit(2...10)
@@ -52,26 +57,22 @@ struct GeneralConfigView: View {
                             guard appState.postAlertReminder.contains("\n") else { return }
                             isFocused = false
                             appState.postAlertReminder = appState.postAlertReminder.replacing("\n", with: "")
+//                            fearPageInitialTip.invalidate(reason: .actionPerformed)
                         }
                 } header: {
                     Text("Post-exposure Message")
                 } footer: {
-                    Text("Do you have any messages you want to receive after the initial exposure? What will help lower your distress levels?")
+                    Text("Write a calming message to yourself. What would help you in moments of anxiety?")
                 }
-                
-//                Section("Alerts") {
-//                    NavigationLink {
-//                        AlertConfigView()
-//                    } label: {
-//                        Text("Configure Alerts")
-//                    }
-//                }
-                
             }
             .navigationTitle("Your Fear")
             .scrollDismissesKeyboard(.immediately)
-            
         }
+    }
+    
+    init() {
+        /// Load and configure the state of all the tips of the app
+        try? Tips.configure()
     }
 }
 
