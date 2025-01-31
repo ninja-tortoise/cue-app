@@ -23,7 +23,7 @@ struct WelcomeCardView: View {
                     .foregroundColor(Color.white)
                     .font(.largeTitle)
                     .fontWeight(.bold)
-                    .padding(.top, 20)
+                    .padding(.top, 30)
                 
                 Text(welcomeData.subtitle)
                     .foregroundColor(Color.white)
@@ -40,7 +40,7 @@ struct WelcomeCardView: View {
                     .scaleEffect(isAnimating ? 1.0 : 0.6)
 //                    .frame(width: 80)
                     .padding(.horizontal, 40)
-                    .padding(.top, 10)
+                    .padding(.top, 6)
                     .tint(Color.white)
                     .foregroundStyle(.white)
                     .shadow(color: Color.black.opacity(0.15),

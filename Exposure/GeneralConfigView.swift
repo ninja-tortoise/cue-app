@@ -19,7 +19,7 @@ struct GeneralConfigView: View {
     let fearPageInitialTip = FearPageInitialTip()
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 
                 TipView(fearPageInitialTip)

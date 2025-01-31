@@ -18,7 +18,7 @@ struct AlertConfigView: View {
     let configInitialTip = ConfigPageInitialTip()
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 
                 TipView(configInitialTip)
@@ -139,6 +139,7 @@ struct AlertConfigView: View {
                             Text("10m").tag(600)
                         }
                         .pickerStyle(.segmented)
+                        .frame(minWidth: 166, idealWidth: 240, maxWidth: 340)
                     }
                     
                     if !appState.smartCheckIn {

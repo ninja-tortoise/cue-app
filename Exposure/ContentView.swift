@@ -100,8 +100,11 @@ actor BackgroundImporter {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: ExposureItem.self, configurations: config)
     let importer = BackgroundImporter(modelContainer: container)
+    
+    var state = AppState()
+//    let _ = state.isExposureInputViewPresented = true
 
     ContentView()
         .modelContainer(container)
-        .environmentObject(AppState())
+        .environmentObject(state)
 }

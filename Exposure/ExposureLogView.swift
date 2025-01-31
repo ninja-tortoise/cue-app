@@ -19,7 +19,7 @@ struct ExposureLogView: View {
     let historyInitialTip = HistoryPageInitialTip()
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 
                 TipView(historyInitialTip)
