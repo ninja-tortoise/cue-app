@@ -25,10 +25,15 @@ struct AboutView: View {
             // TODO: Link to exposure therapy resources
             // TODO: Link to SUDS information?
             
-            // TODO: Link to help lines?
             // TODO: Donation links instead of IAP?
         }
         .navigationTitle("About Cue")
     }
     
+}
+
+#Preview {
+    AboutView()
+        .modelContainer(for: ExposureItem.self, inMemory: true)
+        .environmentObject(AppState())
 }

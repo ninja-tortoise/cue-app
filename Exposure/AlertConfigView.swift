@@ -7,13 +7,16 @@
 
 import TipKit
 import SwiftUI
+import MessageUI
 import SwiftData
 import UserNotifications
 
 struct AlertConfigView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.openURL) private var openURL
     @EnvironmentObject var appState: AppState
     @Query private var items: [ExposureItem]
+    @State private var showingTripleZeroAlert = false
     
     let configInitialTip = ConfigPageInitialTip()
 
@@ -147,7 +150,7 @@ struct AlertConfigView: View {
                     }
                     
                     HStack {
-                        VStack {
+                        VStack(spacing: 5) {
                             HStack {
                                 Text("Smart Check In")
                                 Spacer()
@@ -169,17 +172,53 @@ struct AlertConfigView: View {
                     Text("Check In alerts ask you to re-evaluate your distress level after exposure. This is tracked over time and displayed for review.")
                 }
                 
-                // MARK: App About
-                // TODO: Enable about page
-//                Section {
-//                    NavigationLink {
-//                        AboutView()
-//                    } label: {
-//                        Text("About Cue")
-//                    }
-//                }
+                // MARK: Support
+                Section {
+                    Button(action: {
+                        showingTripleZeroAlert = true
+                    }) {
+                        HStack{
+                            Text("External Help")
+                            Spacer()
+                            Image(systemName: "globe")
+                        }
+                    }
+                    .alert(isPresented: $showingTripleZeroAlert) {
+                        Alert(
+                            title: Text("External Support Website"),
+                            message: Text("If you are in immediate danger please close this app and call triple zero (000). \nContinuing will take you to the Health Direct website."),
+                            dismissButton: .default(Text("OK")) {
+                                // Open URL
+                                openURL(URL(string: "https://www.healthdirect.gov.au/australian-mental-health-services")!)
+                            }
+                        )
+                    }
+                    
+                    Button(action: {
+                        sendEmail(openURL: openURL)
+                    }) {
+                        HStack{
+                            Text("Contact the Developer")
+                            Spacer()
+                            Image(systemName: "envelope")
+                        }
+                    }
+                } header: {
+                    Text("Support")
+                }
             }
             .navigationTitle("Configure Alerts")
+        }
+    }
+    
+    private func sendEmail(openURL: OpenURLAction)  {
+        let urlString = "mailto:cueapp@tobyduffy.com?subject=Cue%20App%20Feedback"
+        guard let url = URL(string: urlString) else { return }
+        
+        openURL(url) { accepted in
+            if !accepted {
+                print("Error opening mail client")
+            }
         }
     }
     
